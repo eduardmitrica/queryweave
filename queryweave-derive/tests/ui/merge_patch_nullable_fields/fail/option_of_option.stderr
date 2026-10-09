@@ -1,0 +1,8 @@
+error: Merge patches do not support `Option<Option<T>>`
+
+       = help: Write `queryweave::Patch<T>` for a field that may be cleared (absent, `null` or a value), or `Option<T>` for one that may not (absent or a value)
+
+ --> $DIR/option_of_option.rs:7:15
+  |
+7 |     pub note: Option<Option<String>>,
+  |               ^^^^^^^^^^^^^^^^^^^^^^

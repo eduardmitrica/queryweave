@@ -1,0 +1,10 @@
+error: Cannot call #[derive(Filters)] on a struct with no #[filter(...)] attributes
+
+       = help: Place at least one #[filter(...)] on a named field of the struct
+
+ --> $DIR/root_empty_struct.rs:3:10
+  |
+3 | #[derive(Filters)]
+  |          ^^^^^^^
+  |
+  = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)

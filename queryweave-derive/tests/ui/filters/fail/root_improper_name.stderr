@@ -1,0 +1,8 @@
+error: The struct's name `User` must have at least 2 pascal-case segments
+
+       = help: Rename the struct so its name has at least 2 segments (`OrderModel` has two: `Order` and `Model`)
+
+ --> $DIR/root_improper_name.rs:4:8
+  |
+4 | struct User {
+  |        ^^^^

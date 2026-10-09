@@ -1,0 +1,7 @@
+---
+source: queryweave/queryweave-codegen/src/parse/validate_non_nullable.rs
+expression: ident
+---
+Ident(
+    MergePatchOrderDto,
+)

@@ -1,0 +1,15 @@
+---
+source: queryweave/queryweave-derive/tests/filters/mirror.rs
+expression: query_params
+---
+UsersQueryParams {
+    page: Some(
+        1,
+    ),
+    page_size: Some(
+        3,
+    ),
+    full_name_sw: Some(
+        "A",
+    ),
+}

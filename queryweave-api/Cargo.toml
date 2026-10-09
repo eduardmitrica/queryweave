@@ -1,0 +1,47 @@
+[package]
+name = "queryweave-api"
+# The five crates are versioned in lockstep.
+version = "0.1.0"
+description = "The API runtime of queryweave: page and sort direction types for API mirrors of a domain model, with optional serde, utoipa and schemars support."
+authors = ["Eduard Mihai Mitrică"]
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+repository.workspace = true
+keywords = ["filter", "pagination", "serde", "openapi", "query"]
+categories = ["web-programming", "data-structures"]
+edition.workspace = true
+# Checked with the oldest toolchain at hand: it may build on older ones.
+rust-version = "1.91"
+
+[lints]
+workspace = true
+
+[dependencies]
+queryweave = { path = "../queryweave", version = "0.1.0", default-features = false }
+
+serde = { workspace = true, optional = true }
+utoipa = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+trybuild.workspace = true
+
+# One feature per integration, each adding its derives to the runtime types;
+# none by default, so a crate depends only on the integrations it enables.
+[features]
+# Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
+# and their runtime): on by default; turn the default features off for the
+# filters alone.
+default = ["merge-patch"]
+merge-patch = ["queryweave/merge-patch"]
+# `Deserialize` / `Serialize` on `SortDirectionDto` and the core's `Patch`,
+# `Serialize` on `PageDto`.
+serde = ["dep:serde", "queryweave/serde"]
+# `ToSchema` on `SortDirectionDto` and `PageDto`.
+utoipa = ["dep:utoipa"]
+# `JsonSchema` on `SortDirectionDto`, `PageDto` and the core's `Patch`.
+schemars = ["dep:schemars", "queryweave/schemars"]
+# validator's `range` rule on the core's `Patch`, for an API's merge patch
+# types.
+validator = ["queryweave/validator"]

@@ -1,0 +1,8 @@
+error: Duplicate `patch` option of #[merge_patch(...)]
+
+       = help: Give `patch` only once
+
+  --> $DIR/patch_repeated.rs:10:23
+   |
+10 | #[merge_patch(patch = MergePatchOrderModel)]
+   |                       ^^^^^^^^^^^^^^^^^^^^

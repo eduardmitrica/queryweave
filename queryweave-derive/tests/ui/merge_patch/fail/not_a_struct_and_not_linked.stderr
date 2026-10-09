@@ -1,0 +1,21 @@
+error: Cannot call #[derive(MergePatch)] on any other item, other than a struct
+
+       = help: Call #[derive(MergePatch)] on a struct
+
+ --> $DIR/not_a_struct_and_not_linked.rs:6:10
+  |
+6 | #[derive(MergePatch)]
+  |          ^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `MergePatch` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: No #[merge_patch(patch = ...)] attribute provided
+
+       = help: Name the merge patch model merged into this model: #[merge_patch(patch = path)]
+
+ --> $DIR/not_a_struct_and_not_linked.rs:6:10
+  |
+6 | #[derive(MergePatch)]
+  |          ^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `MergePatch` (in Nightly builds, run with -Z macro-backtrace for more info)

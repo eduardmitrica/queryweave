@@ -1,0 +1,8 @@
+error: `validator` needs `serde`: a validation error carries the rejected value, serialized
+
+       = help: Add `serde` to the options: #[filters(mirrors = path, serde, validator)]
+
+  --> $DIR/mirror_validator_without_serde.rs:13:40
+   |
+13 | #[filters(mirrors = UserModel, utoipa, validator)]
+   |                                        ^^^^^^^^^

@@ -1,0 +1,8 @@
+error: The `serde` option of #[filters(...)] takes no value
+
+       = help: Write the option alone: #[filters(serde)]
+
+  --> $DIR/mirror_integration_with_value.rs:11:32
+   |
+11 | #[filters(mirrors = UserModel, serde = true)]
+   |                                ^^^^^

@@ -1,0 +1,24 @@
+---
+source: queryweave/queryweave-codegen/src/parse/append_to_query_shared.rs
+expression: parsed
+---
+Parsed {
+    wrapper_ident: Ident(
+        OrdersFilterOptionsModelWrapper,
+    ),
+    inner_ty: Type::Path {
+        attrs: [],
+        qself: None,
+        path: Path {
+            leading_colon: None,
+            segments: [
+                PathSegment {
+                    ident: Ident(
+                        OrdersFilterOptionsModel,
+                    ),
+                    arguments: PathArguments::None,
+                },
+            ],
+        },
+    },
+}

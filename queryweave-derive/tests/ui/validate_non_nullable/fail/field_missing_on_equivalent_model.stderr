@@ -1,0 +1,7 @@
+error[E0609]: no field `amount` on type `MergePatchOrderModel`
+  --> $DIR/field_missing_on_equivalent_model.rs:15:9
+   |
+15 |     pub amount: queryweave::Patch<f64>,
+   |         ^^^^^^ unknown field
+   |
+   = note: available field is: `value`

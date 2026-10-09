@@ -1,0 +1,17 @@
+error: `serde` only applies to a mirror (a struct with #[filters(mirrors = path)])
+
+       = help: Link the struct to the model it mirrors with #[filters(mirrors = path)], or remove the option
+
+ --> $DIR/root_integration.rs:6:11
+  |
+6 | #[filters(serde, validator)]
+  |           ^^^^^
+
+error: `validator` only applies to a mirror (a struct with #[filters(mirrors = path)])
+
+       = help: Link the struct to the model it mirrors with #[filters(mirrors = path)], or remove the option
+
+ --> $DIR/root_integration.rs:6:18
+  |
+6 | #[filters(serde, validator)]
+  |                  ^^^^^^^^^

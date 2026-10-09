@@ -1,0 +1,70 @@
+[workspace]
+members = [
+    "queryweave",
+    "queryweave-api",
+    "queryweave-codegen",
+    "queryweave-custom-conventions",
+    "queryweave-derive",
+    "queryweave-sql",
+]
+resolver = "2"
+# The git hook builder (`pre_commit_script_builder`) is tooling, built on its own.
+exclude = ["pre_commit_script_builder"]
+
+[workspace.package]
+edition = "2024"
+repository = "https://github.com/eduardmitrica/queryweave"
+
+# The lint policy of every crate: strict, as for a library others build on.
+[workspace.lints.rust]
+unsafe_code = "forbid"    # Forbid use of `unsafe`
+unused_variables = "warn" # Warn on unused variables
+missing_docs = "warn"     # Encourage documentation
+dead_code = "warn"        # Warn on dead code
+unreachable_code = "warn" # Warn on unreachable paths
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }             # Turn on all clippy lints as warnings
+pedantic = { level = "warn", priority = -1 }        # Enable clippy's pedantic lints
+nursery = { level = "warn", priority = -1 }         # Enable experimental lints
+unwrap_used = { level = "deny", priority = 1 }      # Prevent `unwrap()` usage
+expect_used = "deny"                                # Deny `expect()`
+panic = "deny"                                      # Deny `panic!`
+wildcard_imports = { level = "deny", priority = 1 } # Deny `use foo::*`
+todo = "warn"                                       # Warn on `todo!()` left behind
+dbg_macro = "warn"                                  # Warn on `dbg!()` usage
+indexing_slicing = "deny"                           # Deny direct indexing
+# clippy 1.99 reports the `field: field` initializers `#[derive(derive_new::new)]`
+# generates at the struct's fields; rustfmt's `use_field_init_shorthand` enforces it instead.
+redundant_field_names = "allow"
+
+# The libraries' dependencies stay minimal: a crate (or a test) asks for the
+# features it needs where it depends on them.
+[workspace.dependencies]
+# The runtime crates.
+chrono = "0.4.45"
+# Only the query builder and the binding traits: the user's driver does the rest.
+sqlx = { version = "0.8.6", default-features = false }
+serde = { version = "1.0.229", features = ["derive"] }
+utoipa = "5.5.0"
+schemars = "1.2.2"
+validator = "0.20.0"
+garde = { version = "0.23.0", features = ["derive"] }
+
+# The code generation.
+proc-macro2 = "1.0.107"
+quote = "1.0.47"
+syn = { version = "3.0.6", features = ["extra-traits", "full"] }
+derive-new = "0.7.0"
+fancy-regex = "0.17.0"
+mutants = "0.0.4"
+
+# Tests.
+insta = "1.49.0"
+pretty_assertions = "1.4.1"
+prettyplease = "0.3.0"
+rstest = "0.26.1"
+serde_json = "1.0.151"
+testcontainers = "0.26.3"
+tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread"] }
+trybuild = "1.0.121"

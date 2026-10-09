@@ -1,0 +1,10 @@
+error: No #[validate_non_nullable(mirrors = ...)] attribute provided
+
+       = help: Name the domain merge patch model this DTO mirrors: #[validate_non_nullable(mirrors = path)]
+
+ --> $DIR/mirrors_not_linked.rs:5:10
+  |
+5 | #[derive(ValidateNonNullable, Validate)]
+  |          ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `ValidateNonNullable` (in Nightly builds, run with -Z macro-backtrace for more info)

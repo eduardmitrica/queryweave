@@ -1,0 +1,11 @@
+error[E0275]: overflow evaluating the requirement `<UserDto as Filterable>::Root == _`
+ --> $DIR/mirror_cycle.rs:7:25
+  |
+7 |     #[filters(mirrors = super::grpc::UserMessage)]
+  |                         ^^^^^
+
+error[E0275]: overflow evaluating the requirement `<UserMessage as Filterable>::Root == _`
+  --> $DIR/mirror_cycle.rs:18:25
+   |
+18 |     #[filters(mirrors = super::api::UserDto)]
+   |                         ^^^^^

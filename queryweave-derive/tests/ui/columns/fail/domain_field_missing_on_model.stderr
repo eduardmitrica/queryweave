@@ -1,0 +1,10 @@
+error[E0609]: no field `delivery_dat` on type `OrderModel`
+  --> $DIR/domain_field_missing_on_model.rs:11:20
+   |
+11 |     #[domain_field(delivery_dat)]
+   |                    ^^^^^^^^^^^^ unknown field
+   |
+help: a field with a similar name exists
+   |
+11 |     #[domain_field(delivery_date)]
+   |                                +

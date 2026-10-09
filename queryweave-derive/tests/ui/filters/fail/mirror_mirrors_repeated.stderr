@@ -1,0 +1,8 @@
+error: Duplicate `mirrors` option of #[filters(...)]
+
+       = help: Give `mirrors` only once
+
+ --> $DIR/mirror_mirrors_repeated.rs:6:42
+  |
+6 | #[filters(mirrors = UserModel, mirrors = OtherModel)]
+  |                                          ^^^^^^^^^^

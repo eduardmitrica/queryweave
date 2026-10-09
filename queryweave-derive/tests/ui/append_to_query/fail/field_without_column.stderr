@@ -1,0 +1,15 @@
+error[E0080]: evaluation panicked: domain field `delivery_date` has no column on `Order`: add a field of that name to the entity, or map one onto it with `#[domain_field(delivery_date)]`
+  --> $DIR/field_without_column.rs:24:17
+   |
+24 | #[derive(Debug, AppendToQueryWithSeparator)]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed here
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the derive macro `AppendToQueryWithSeparator` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation panicked: domain field `delivery_date` has no column on `Order`: add a field of that name to the entity, or map one onto it with `#[domain_field(delivery_date)]`
+  --> $DIR/field_without_column.rs:28:17
+   |
+28 | #[derive(Debug, AppendToQuery)]
+   |                 ^^^^^^^^^^^^^ evaluation of `_` failed here
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)

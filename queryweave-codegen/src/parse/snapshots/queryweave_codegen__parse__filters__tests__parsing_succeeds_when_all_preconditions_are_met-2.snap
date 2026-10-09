@@ -1,0 +1,82 @@
+---
+source: queryweave/queryweave-codegen/src/parse/filters.rs
+expression: "*named_fields"
+---
+FieldsNamed {
+    brace_token: Brace,
+    named: [
+        Field {
+            attrs: [
+                Attribute {
+                    pound_token: Token![#],
+                    style: AttrStyle::Outer,
+                    bracket_token: Bracket,
+                    meta: Meta::List {
+                        path: Path {
+                            leading_colon: None,
+                            segments: [
+                                PathSegment {
+                                    ident: Ident(
+                                        filter,
+                                    ),
+                                    arguments: PathArguments::None,
+                                },
+                            ],
+                        },
+                        delimiter: MacroDelimiter::Paren(
+                            Paren,
+                        ),
+                        tokens: TokenStream [
+                            Ident {
+                                sym: sw,
+                            },
+                        ],
+                    },
+                },
+                Attribute {
+                    pound_token: Token![#],
+                    style: AttrStyle::Outer,
+                    bracket_token: Bracket,
+                    meta: Meta::Path {
+                        leading_colon: None,
+                        segments: [
+                            PathSegment {
+                                ident: Ident(
+                                    sortable,
+                                ),
+                                arguments: PathArguments::None,
+                            },
+                        ],
+                    },
+                },
+            ],
+            vis: Visibility::Inherited,
+            modifiers: FieldModifiers,
+            ident: Some(
+                Ident(
+                    username,
+                ),
+            ),
+            colon_token: Some(
+                Token![:],
+            ),
+            ty: Type::Path {
+                attrs: [],
+                qself: None,
+                path: Path {
+                    leading_colon: None,
+                    segments: [
+                        PathSegment {
+                            ident: Ident(
+                                String,
+                            ),
+                            arguments: PathArguments::None,
+                        },
+                    ],
+                },
+            },
+            default: None,
+        },
+        Token![,],
+    ],
+}

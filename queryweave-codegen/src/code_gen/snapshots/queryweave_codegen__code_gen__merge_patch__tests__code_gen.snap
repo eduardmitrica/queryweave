@@ -1,0 +1,67 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/merge_patch.rs
+expression: "pretty(super::code_gen(intermediary_representation, mapping_paths))"
+---
+impl ::queryweave::ChangedFields for OrderModel {
+    /// Iterate through all fields, excluding fields marked as #[merge_patch(skip)]
+    /// and return a change set (a hash-set consisting of the field names
+    /// of the fields that were changed).
+    fn modified_fields(&self, previous: &Self) -> ::queryweave::ChangeSet {
+        let mut fields_that_were_changed = ::queryweave::ChangeSet::default();
+        if self.client != previous.client {
+            _ = fields_that_were_changed.insert("client");
+        }
+        if self.capacity != previous.capacity {
+            _ = fields_that_were_changed.insert("capacity");
+        }
+        fields_that_were_changed
+    }
+}
+/// The domain fields a merge patch may write (those not marked
+/// `#[merge_patch(skip)]`, i.e. what `changed_values` can return),
+/// for the persistence layer to map onto columns.
+impl ::queryweave::PersistedFields for OrderModel {
+    const FIELD_NAMES: &'static [&'static str] = &["client", "capacity"];
+}
+impl OrderModel {
+    /// Merge a model with a patch resulting in a modified model.
+    pub fn merge(&mut self, merge_patch: MergePatchOrderModel) {
+        ::queryweave::PatchField::apply_to(merge_patch.client, &mut self.client);
+        ::queryweave::PatchField::apply_to(merge_patch.capacity, &mut self.capacity);
+    }
+    /// The changed fields (per `diff`, see `ChangedFields::modified_fields`)
+    /// with their current raw values, as database-agnostic field/value
+    /// pairs for the persistence layer to write.
+    #[must_use]
+    pub fn changed_values(
+        &self,
+        diff: &::queryweave::ChangeSet,
+    ) -> ::queryweave::FieldValues<Self> {
+        ::queryweave::__private::model_data({
+            let mut values = Vec::new();
+            if diff.contains("client") {
+                values
+                    .push(::queryweave::FieldValue {
+                        field: "client",
+                        value: ::queryweave::IntoValue::into_value(
+                            ::queryweave::RawValue::to_raw(&self.client),
+                        ),
+                    });
+            }
+            if diff.contains("capacity") {
+                values
+                    .push(::queryweave::FieldValue {
+                        field: "capacity",
+                        value: ::queryweave::IntoValue::into_value(
+                            ::queryweave::RawValue::to_raw(&self.capacity),
+                        ),
+                    });
+            }
+            values
+        })
+    }
+}
+const _: fn() = || {
+    fn merge_patch_model<T: ::queryweave::MergePatchNullableFields>() {}
+    merge_patch_model::<MergePatchOrderModel>();
+};

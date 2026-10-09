@@ -1,0 +1,8 @@
+error: Duplicate `mirrors` option of #[validate_non_nullable(...)]
+
+       = help: Give `mirrors` only once
+
+ --> $DIR/mirrors_repeated.rs:9:35
+  |
+9 | #[validate_non_nullable(mirrors = MergePatchOrderModel, validator)]
+  |                                   ^^^^^^^^^^^^^^^^^^^^

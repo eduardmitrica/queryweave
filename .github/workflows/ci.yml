@@ -1,0 +1,37 @@
+# queryweave's continuous integration: the same checks as `scripts/check.sh`.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checks:
+    name: Checks (lints, unit, doc, feature and database tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Installs the toolchain `rust-toolchain.toml` pins.
+      - run: rustup show
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - uses: Swatinem/rust-cache@v2
+      # The runner has Docker, for the Postgres, MySQL and MariaDB containers.
+      - run: sh scripts/check.sh ci
+
+  ui:
+    name: UI tests (trybuild)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup show
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo nextest run --workspace -E 'test(/ui_tests/)'

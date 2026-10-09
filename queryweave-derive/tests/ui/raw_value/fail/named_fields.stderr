@@ -1,0 +1,8 @@
+error: Cannot call #[derive(RawValue)] on a struct that doesn't have exactly one unnamed field
+
+       = help: Call #[derive(RawValue)] on a newtype struct, e.g. `struct Username<T = String>(T);`
+
+ --> $DIR/named_fields.rs:4:8
+  |
+4 | struct Username {
+  |        ^^^^^^^^

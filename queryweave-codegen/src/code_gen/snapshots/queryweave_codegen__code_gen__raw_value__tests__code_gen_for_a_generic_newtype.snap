@@ -1,0 +1,13 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/raw_value.rs
+expression: "code_gen(quote::quote! { struct Username<T = String>(T); })"
+---
+impl<T> ::queryweave::RawValue for Username<T>
+where
+    T: ::queryweave::RawValue,
+{
+    type Raw = <T as ::queryweave::RawValue>::Raw;
+    fn to_raw(&self) -> Self::Raw {
+        ::queryweave::RawValue::to_raw(&self.0)
+    }
+}

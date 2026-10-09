@@ -1,0 +1,115 @@
+error[E0277]: `Tag` has no raw value to filter on or bind
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:9:10
+  |
+9 |     tag: Tag,
+  |          ^^^ not a scalar, `String`, date-time or value object
+  |
+help: the trait `RawValue` is not implemented for `Tag`
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:4:1
+  |
+4 | struct Tag(String);
+  | ^^^^^^^^^^
+  = note: derive `queryweave_derive::RawValue` on a value object, or implement `queryweave::RawValue`
+  = help: the following other types implement trait `RawValue`:
+            Option<T>
+            String
+            bool
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+          and $N others
+
+error[E0277]: `Tag` has no raw value to filter on or bind
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:6:10
+  |
+6 | #[derive(Filters)]
+  |          ^^^^^^^ not a scalar, `String`, date-time or value object
+  |
+help: the trait `RawValue` is not implemented for `Tag`
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:4:1
+  |
+4 | struct Tag(String);
+  | ^^^^^^^^^^
+  = note: derive `queryweave_derive::RawValue` on a value object, or implement `queryweave::RawValue`
+  = help: the following other types implement trait `RawValue`:
+            Option<T>
+            String
+            bool
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+          and $N others
+
+error[E0277]: `Tag` has no raw value to filter on or bind
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:6:10
+  |
+6 | #[derive(Filters)]
+  |          ^^^^^^^ not a scalar, `String`, date-time or value object
+  |
+help: the trait `RawValue` is not implemented for `Tag`
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:4:1
+  |
+4 | struct Tag(String);
+  | ^^^^^^^^^^
+  = note: derive `queryweave_derive::RawValue` on a value object, or implement `queryweave::RawValue`
+  = help: the following other types implement trait `RawValue`:
+            Option<T>
+            String
+            bool
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+          and $N others
+
+error[E0277]: `Tag` has no raw value to filter on or bind
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:6:10
+  |
+6 | #[derive(Filters)]
+  |          ^^^^^^^ not a scalar, `String`, date-time or value object
+  |
+help: the trait `RawValue` is not implemented for `Tag`
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:4:1
+  |
+4 | struct Tag(String);
+  | ^^^^^^^^^^
+  = note: derive `queryweave_derive::RawValue` on a value object, or implement `queryweave::RawValue`
+  = help: the following other types implement trait `RawValue`:
+            Option<T>
+            String
+            bool
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+          and $N others
+
+error[E0277]: `Tag` has no raw value to filter on or bind
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:6:10
+  |
+6 | #[derive(Filters)]
+  |          ^^^^^^^ not a scalar, `String`, date-time or value object
+  |
+help: the trait `RawValue` is not implemented for `Tag`
+ --> tests/ui/filters/fail/root_field_without_raw_value.rs:4:1
+  |
+4 | struct Tag(String);
+  | ^^^^^^^^^^
+  = note: derive `queryweave_derive::RawValue` on a value object, or implement `queryweave::RawValue`
+  = help: the following other types implement trait `RawValue`:
+            Option<T>
+            String
+            bool
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+          and $N others
+  = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)

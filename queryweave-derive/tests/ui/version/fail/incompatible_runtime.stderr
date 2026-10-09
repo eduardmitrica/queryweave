@@ -1,0 +1,19 @@
+error[E0080]: evaluation panicked: the queryweave derives and runtime crates have incompatible versions: use the same version of every queryweave crate (queryweave, queryweave-api, queryweave-sql, queryweave-derive, queryweave-codegen)
+ --> tests/ui/version/fail/incompatible_runtime.rs:4:15
+  |
+4 | const _: () = queryweave::__private::require_version(99, 0);
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_` failed inside this call
+  |
+note: inside `queryweave::__private::require_version`
+ --> $RUST/core/src/panic.rs
+  |
+  |           $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+  |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+  |
+ ::: $WORKSPACE/queryweave/src/version.rs
+  |
+  | /     assert!(
+  | |         compatible((major, minor), VERSION),
+  | |         "the queryweave derives and runtime crates have incompatible versions: use the same version of every queryweave crate (que...
+  | |     );
+  | |_____- in this macro invocation

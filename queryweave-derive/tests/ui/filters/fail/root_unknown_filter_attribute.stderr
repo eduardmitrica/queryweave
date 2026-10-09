@@ -1,0 +1,8 @@
+error: Unrecognized filter meta; expected one of: lt, eq, gt, sw, c, ew, bool
+
+       = help: Place inside the #[filter(...)] attribute one of the following meta: lt, eq, gt, sw, c, ew, bool
+
+ --> $DIR/root_unknown_filter_attribute.rs:5:14
+  |
+5 |     #[filter(boolean)]
+  |              ^^^^^^^

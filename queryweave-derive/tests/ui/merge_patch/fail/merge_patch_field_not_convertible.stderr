@@ -1,0 +1,20 @@
+error[E0277]: the trait bound `Capacity: From<String>` is not satisfied
+  --> tests/ui/merge_patch/fail/merge_patch_field_not_convertible.rs:15:5
+   |
+15 |     capacity: Capacity<i32>,
+   |     ^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `From<String>` is not implemented for `Capacity`
+  --> tests/ui/merge_patch/fail/merge_patch_field_not_convertible.rs:4:1
+   |
+ 4 | struct Capacity<T = i32>(T);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `PatchField<F>` is conditionally implemented for `Option<P>`
+  --> $WORKSPACE/queryweave/src/patch.rs
+   |
+   | impl<P: Into<F>, F> PatchField<F> for Option<P> {
+   | ^^^^^^^^-------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |         |
+   |         unsatisfied requirement introduced here: `String: Into<Capacity>`
+   = note: required for `String` to implement `Into<Capacity>`
+   = note: required for `Option<String>` to implement `PatchField<Capacity>`

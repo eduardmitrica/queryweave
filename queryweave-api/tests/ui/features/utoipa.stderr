@@ -1,0 +1,13 @@
+error[E0277]: the `utoipa` integration needs `queryweave-api`'s `utoipa` feature
+ --> $DIR/utoipa.rs:5:34
+  |
+5 | const _: () = requires_feature::<queryweave_api::SortDirectionDto>();
+  |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `queryweave-api` is built without its `utoipa` feature
+  |
+  = help: the trait `Utoipa` is not implemented for `SortDirectionDto`
+  = note: enable it: `queryweave-api = { version = "..", features = ["utoipa"] }`
+note: required by a bound in `requires_feature`
+ --> $DIR/utoipa.rs:3:30
+  |
+3 | const fn requires_feature<T: queryweave_api::features::Utoipa>() {}
+  |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `requires_feature`

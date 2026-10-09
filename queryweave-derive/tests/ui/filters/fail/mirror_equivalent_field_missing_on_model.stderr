@@ -1,0 +1,22 @@
+error[E0599]: no variant, associated function, or constant named `Numbr` found for enum `InvoiceSortFieldModel` in the current scope
+  --> $DIR/mirror_equivalent_field_missing_on_model.rs:17:24
+   |
+ 3 | #[derive(Filters)]
+   |          ------- variant, associated function, or constant `Numbr` not found for this enum
+...
+17 |     #[equivalent_field(numbr)]
+   |                        ^^^^^ variant, associated function, or constant not found in `InvoiceSortFieldModel`
+   |
+help: there is a variant with a similar name
+   |
+17 -     #[equivalent_field(numbr)]
+17 +     #[equivalent_field(Number)]
+   |
+
+error[E0560]: struct `InvoicesFilterOptionsModel` has no field named `numbr_eq`
+  --> $DIR/mirror_equivalent_field_missing_on_model.rs:17:24
+   |
+17 |     #[equivalent_field(numbr)]
+   |                        ^^^^^ `InvoicesFilterOptionsModel` does not have this field
+   |
+   = note: all struct fields are already assigned

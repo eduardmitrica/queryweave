@@ -1,0 +1,8 @@
+error: `UserDto` cannot link to itself with #[filters(mirrors = ...)]
+
+       = help: Name another struct, which `UserDto` mirrors
+
+ --> $DIR/mirror_mirrors_itself.rs:6:21
+  |
+6 | #[filters(mirrors = UserDto)]
+  |                     ^^^^^^^

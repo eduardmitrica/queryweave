@@ -1,0 +1,24 @@
+error[E0277]: `String` does not support the `lt` / `gt` filters
+ --> tests/ui/filters/fail/root_ordered_filter_on_text.rs:6:16
+  |
+6 |     full_name: String,
+  |                ^^^^^^ not ordered
+  |
+  = help: the trait `Ordered` is not implemented for `String`
+  = note: `lt` / `gt` apply to numbers and date-times; implement `queryweave::Ordered` to allow them
+  = help: the following other types implement trait `Ordered`:
+            chrono::datetime::DateTime<chrono::offset::utc::Utc>
+            chrono::naive::date::NaiveDate
+            chrono::naive::datetime::NaiveDateTime
+            chrono::naive::time::NaiveTime
+            f32
+            f64
+            i16
+            i32
+          and $N others
+note: required by a bound in `_assert_ordered`
+ --> tests/ui/filters/fail/root_ordered_filter_on_text.rs:3:10
+  |
+3 | #[derive(Filters)]
+  |          ^^^^^^^ required by this bound in `_assert_ordered`
+  = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)

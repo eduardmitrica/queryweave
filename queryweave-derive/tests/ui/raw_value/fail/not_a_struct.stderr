@@ -1,0 +1,10 @@
+error: Cannot call #[derive(RawValue)] on any other item, other than a struct
+
+       = help: Call #[derive(RawValue)] on a newtype struct, e.g. `struct Username<T = String>(T);`
+
+ --> $DIR/not_a_struct.rs:3:10
+  |
+3 | #[derive(RawValue)]
+  |          ^^^^^^^^
+  |
+  = note: this error originates in the derive macro `RawValue` (in Nightly builds, run with -Z macro-backtrace for more info)

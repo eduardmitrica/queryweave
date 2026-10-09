@@ -1,0 +1,14 @@
+error: expected attribute arguments in parentheses: `filter(...)`
+ --> $DIR/root_no_inner_attribute_provided_to_filter_attribute.rs:5:7
+  |
+5 |     #[filter]
+  |       ^^^^^^
+
+error: The list of arguments of the #[filter(...)] attribute cannot be left empty
+
+       = help: Provide an argument to the #[filter(...)] attribute
+
+ --> $DIR/root_no_inner_attribute_provided_to_filter_attribute.rs:8:7
+  |
+8 |     #[filter()]
+  |       ^^^^^^^^

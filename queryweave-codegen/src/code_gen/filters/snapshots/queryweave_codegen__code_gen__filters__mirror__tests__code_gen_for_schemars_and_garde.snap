@@ -1,0 +1,188 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/filters/mirror.rs
+expression: "pretty(super::code_gen(sortable_ir(), &model,\n&integrations(&[\"schemars\", \"garde\"]), &syn::parse_quote!(::queryweave_api)))"
+---
+const _: () = {
+    const fn requires_feature<T: ::queryweave_api::features::Schemars>() {}
+    requires_feature::<::queryweave_api::SortDirectionDto>();
+};
+/// Sortable fields enum.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, schemars::JsonSchema)]
+#[schemars(rename_all = "snake_case")]
+pub enum UserSortFieldDto {
+    /// Sort by `username`.
+    Username,
+}
+impl UserSortFieldDto {
+    /// The number of sortable fields, i.e. the most sort details a query may carry.
+    pub const COUNT: u64 = 1usize as u64;
+}
+/// A field to sort by, and the direction to sort it in.
+#[derive(Debug, Clone, PartialEq, Eq, schemars::JsonSchema)]
+pub struct UserSortDetailsDto {
+    /// The field to sort by.
+    pub field: UserSortFieldDto,
+    /// The direction to sort in.
+    pub order: ::queryweave_api::SortDirectionDto,
+}
+const _: () = {
+    type __SortField = <domain::models::user::UserModel as ::queryweave_api::Filterable>::SortField;
+    type __SortDetails = <domain::models::user::UserModel as ::queryweave_api::Filterable>::SortDetails;
+    impl ::queryweave_api::SortFieldOf<domain::models::user::UserModel>
+    for UserSortFieldDto {
+        fn into_sort_field(self) -> __SortField {
+            match self {
+                Self::Username => __SortField::UserName,
+            }
+        }
+        fn from_sort_field(field: __SortField) -> Self {
+            match field {
+                __SortField::UserName => Self::Username,
+            }
+        }
+    }
+    impl ::queryweave_api::SortDetailsOf<domain::models::user::UserModel>
+    for &UserSortDetailsDto {
+        fn into_sort_details(self) -> __SortDetails {
+            __SortDetails {
+                field: ::queryweave_api::SortFieldOf::<
+                    domain::models::user::UserModel,
+                >::into_sort_field(self.field),
+                order: self.order.into(),
+            }
+        }
+    }
+};
+impl UserSortDetailsDto {
+    /// Reject sort details that sort on the same field more than once.
+    ///
+    /// # Errors
+    ///
+    /// Returns a validation error when a field is repeated.
+    pub fn garde_unique_sort(sort: &Option<Vec<Self>>, _context: &()) -> garde::Result {
+        let Some(sort) = sort else {
+            return Ok(());
+        };
+        let fields: std::collections::HashSet<UserSortFieldDto> = sort
+            .iter()
+            .map(|details| details.field)
+            .collect();
+        if sort.len() == fields.len() {
+            Ok(())
+        } else {
+            Err(garde::Error::new("Duplicate sort field"))
+        }
+    }
+}
+/// The struct used for keeping and page, page_size, sort, order and the inner filters.
+#[derive(Debug, Default, Clone, schemars::JsonSchema, garde::Validate)]
+#[garde(allow_unvalidated)]
+pub struct UsersQueryParams {
+    /// Page to select (0 based).
+    pub page: Option<u32>,
+    /// Number of elements per page to get back.
+    #[garde(range(min = 1))]
+    pub page_size: Option<u32>,
+    /// Sort by some sortable fields.
+    #[garde(
+        length(min = 1, max = UserSortFieldDto::COUNT as usize),
+        custom(UserSortDetailsDto::garde_unique_sort)
+    )]
+    pub sort: Option<Vec<UserSortDetailsDto>>,
+    /// Keeps the items whose `username` starts with the given value.
+    pub username_sw: Option<String>,
+}
+const _: () = {
+    type __Query = <domain::models::user::UserModel as ::queryweave_api::Filterable>::Query;
+    type __FilterOptions = <domain::models::user::UserModel as ::queryweave_api::Filterable>::FilterOptions;
+    impl ::queryweave_api::QueryOf<domain::models::user::UserModel>
+    for UsersQueryParams {
+        fn into_query(self) -> __Query {
+            let sort = self
+                .sort
+                .as_ref()
+                .map(|sort| sort.into_iter().map(Into::into).collect());
+            <domain::models::user::UserModel as ::queryweave_api::Filterable>::query(
+                self.page,
+                self.page_size,
+                sort,
+                ::queryweave_api::FilterOptionsOf::<
+                    domain::models::user::UserModel,
+                >::into_filter_options(self),
+            )
+        }
+    }
+    impl ::queryweave_api::FilterOptionsOf<domain::models::user::UserModel>
+    for UsersQueryParams {
+        fn into_filter_options(self) -> __FilterOptions {
+            __FilterOptions {
+                user_name_sw: self.username_sw,
+            }
+        }
+    }
+};
+/// The filters of the query parameters, for a struct mirroring this
+/// one to convert into.
+#[derive(Debug, Default, Clone)]
+pub struct UsersFilterOptionsDto {
+    /// Keeps the items whose `username` starts with the given value.
+    pub username_sw: Option<String>,
+}
+/// The types generated for this struct, for code mirroring it (e.g. an
+/// API DTO) to name through it.
+impl ::queryweave_api::Filterable for UserDto {
+    type Root = <domain::models::user::UserModel as ::queryweave_api::Filterable>::Root;
+    type Query = UsersQueryParams;
+    type FilterOptions = UsersFilterOptionsDto;
+    type SortField = UserSortFieldDto;
+    type SortDetails = UserSortDetailsDto;
+    fn query(
+        page: Option<u32>,
+        page_size: Option<u32>,
+        sort: Option<Vec<UserSortDetailsDto>>,
+        filters: UsersFilterOptionsDto,
+    ) -> UsersQueryParams {
+        UsersQueryParams {
+            page,
+            page_size,
+            sort,
+            username_sw: filters.username_sw,
+        }
+    }
+    fn into_root_query(
+        query: UsersQueryParams,
+    ) -> <Self::Root as ::queryweave_api::Filterable>::Query {
+        <domain::models::user::UserModel as ::queryweave_api::Filterable>::into_root_query(
+            ::queryweave_api::QueryOf::<
+                domain::models::user::UserModel,
+            >::into_query(query),
+        )
+    }
+}
+impl ::queryweave_api::IntoRootQuery<UserDto> for UsersQueryParams {
+    fn into_root_query(
+        self,
+    ) -> <<UserDto as ::queryweave_api::Filterable>::Root as ::queryweave_api::Filterable>::Query {
+        <UserDto as ::queryweave_api::Filterable>::into_root_query(self)
+    }
+}
+impl<T: ::queryweave_api::QueryOf<UserDto>> From<T> for UsersQueryParams {
+    fn from(value: T) -> Self {
+        ::queryweave_api::QueryOf::into_query(value)
+    }
+}
+impl<T: ::queryweave_api::FilterOptionsOf<UserDto>> From<T> for UsersFilterOptionsDto {
+    fn from(value: T) -> Self {
+        ::queryweave_api::FilterOptionsOf::into_filter_options(value)
+    }
+}
+impl<T: ::queryweave_api::SortFieldOf<UserDto>> From<T> for UserSortFieldDto {
+    fn from(value: T) -> Self {
+        ::queryweave_api::SortFieldOf::into_sort_field(value)
+    }
+}
+impl<T: ::queryweave_api::SortDetailsOf<UserDto>> From<T> for UserSortDetailsDto {
+    fn from(value: T) -> Self {
+        ::queryweave_api::SortDetailsOf::into_sort_details(value)
+    }
+}

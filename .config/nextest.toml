@@ -1,0 +1,50 @@
+[nextest-version]
+required = "0.9.146"
+
+# Every `test_ui_*` function in a crate builds its cases through the *same*
+# generated trybuild project (`target/tests/trybuild/<crate>`), which holds a
+# single Cargo.toml listing one `[[bin]]` per case. nextest runs each test in
+# its own process, so running them concurrently makes them overwrite each
+# other's manifest and sources mid-build, thus surfacing as "no bin target named
+# trybuildNNN", one case reporting another file's diagnostic, or a
+# `compile_fail` case appearing to succeed. Pinning them to a single-threaded
+# group keeps one trybuild project active at a time.
+# Upstream issue: https://github.com/dtolnay/trybuild/issues/276
+[test-groups]
+ui-tests = { max-threads = 1 }
+
+# Everything: unit, UI and database tests (the last need Docker).
+[profile.default]
+global-timeout = "1h"
+slow-timeout = { period = "25m", terminate-after = 1 }
+test-threads = 8
+fail-fast = true
+default-filter = "all()"
+
+# Serialize the trybuild UI tests (see the note on `[test-groups]` above).
+# Inherited by the other profiles, so it also applies whenever they are run
+# explicitly past their `default-filter`.
+[[profile.default.overrides]]
+filter = "test(/ui_tests/)"
+test-group = "ui-tests"
+
+# CI: everything but the UI tests, which CI runs in a step of their own.
+[profile.ci]
+fail-fast = false
+default-filter = "not test(/ui_tests/)"
+
+[profile.ci.retries]
+backoff = "fixed"
+count = 2
+delay = "1s"
+
+# Fast local runs: neither the UI tests (each case is a full `cargo build`)
+# nor the database tests (they start Postgres, MySQL and MariaDB containers).
+[profile.fast]
+fail-fast = false
+default-filter = "not ( test(/ui_tests/) | (package(queryweave-sql) & (binary(postgres) | binary(mysql))) )"
+
+[profile.fast.retries]
+backoff = "fixed"
+count = 2
+delay = "1s"

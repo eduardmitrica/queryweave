@@ -1,0 +1,10 @@
+error: No #[merge_patch(patch = ...)] attribute provided
+
+       = help: Name the merge patch model merged into this model: #[merge_patch(patch = path)]
+
+ --> $DIR/merge_patch_not_linked_to_model.rs:3:10
+  |
+3 | #[derive(MergePatch)]
+  |          ^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `MergePatch` (in Nightly builds, run with -Z macro-backtrace for more info)

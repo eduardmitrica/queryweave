@@ -1,0 +1,11 @@
+allow-indexing-slicing-in-tests = true
+suppress-restriction-lint-in-const = true
+allow-unwrap-in-consts = true
+allow-unwrap-in-tests = true
+allow-expect-in-consts = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+avoid-breaking-exported-api = false
+semicolon-outside-block-ignore-multiline = true
+warn-on-all-wildcard-imports = true
+absolute-paths-max-segments = 3

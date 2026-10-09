@@ -1,0 +1,87 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/validate_non_nullable.rs
+expression: "pretty(super::code_gen(intermediary_representation(&ident),\nmapping_paths(Some(\"validator\"))))"
+---
+impl MergePatchOrderDto {
+    /// The fields set to `null` that may not be (by the domain merge
+    /// patch model), by the names clients send: what a validation
+    /// library turns into its errors.
+    #[must_use]
+    pub fn rejected_nulls(&self) -> Vec<&'static str> {
+        let mut rejected = Vec::new();
+        {
+            const FIELD_NAME: &str = stringify!(value);
+            const EQUIVALENT_FIELD_NAME: &str = stringify!(value);
+            if !<domain::models::merge_patch_order::MergePatchOrderModel as ::queryweave::NullableFields>::is_nullable(
+                EQUIVALENT_FIELD_NAME,
+            ) && ::queryweave::PatchKind::is_null(&self.value)
+            {
+                rejected.push(FIELD_NAME);
+            }
+        }
+        {
+            const FIELD_NAME: &str = stringify!(order_number);
+            const EQUIVALENT_FIELD_NAME: &str = stringify!(number);
+            if !<domain::models::merge_patch_order::MergePatchOrderModel as ::queryweave::NullableFields>::is_nullable(
+                EQUIVALENT_FIELD_NAME,
+            ) && ::queryweave::PatchKind::is_null(&self.order_number)
+            {
+                rejected.push(FIELD_NAME);
+            }
+        }
+        rejected
+    }
+}
+const _: fn() = || {
+    fn validator_validate<T: validator::Validate>() {}
+    validator_validate::<MergePatchOrderDto>();
+};
+impl MergePatchOrderDto {
+    /// Validate the struct (`validator::Validate`), then reject each
+    /// field set to `null` that may not be (see `rejected_nulls`).
+    ///
+    /// # Errors
+    ///
+    /// Returns the validation errors, a `non-nullable` one under each
+    /// field rejected.
+    pub fn validate_non_nullable(&self) -> Result<(), validator::ValidationErrors> {
+        validator::Validate::validate(&self)?;
+        let mut errors = validator::ValidationErrors::new();
+        for field in self.rejected_nulls() {
+            let message: &'static str = match field {
+                "value" => "Value cannot be set to null",
+                "order_number" => "Order_number cannot be set to null",
+                _ => "This field cannot be set to null",
+            };
+            errors
+                .add(
+                    field,
+                    validator::ValidationError::new("non-nullable")
+                        .with_message(message.into()),
+                );
+        }
+        if errors.is_empty() { Ok(()) } else { Err(errors) }
+    }
+}
+impl ::queryweave::NullableFields for MergePatchOrderDto {
+    type Root = <domain::models::merge_patch_order::MergePatchOrderModel as ::queryweave::NullableFields>::Root;
+    fn is_nullable(field: &str) -> bool {
+        match field {
+            "value" => {
+                <domain::models::merge_patch_order::MergePatchOrderModel as ::queryweave::NullableFields>::is_nullable(
+                    "value",
+                )
+            }
+            "order_number" => {
+                <domain::models::merge_patch_order::MergePatchOrderModel as ::queryweave::NullableFields>::is_nullable(
+                    "number",
+                )
+            }
+            _ => false,
+        }
+    }
+}
+const _: fn(domain::models::merge_patch_order::MergePatchOrderModel) = |value| {
+    let _ = &value.value;
+    let _ = &value.number;
+};

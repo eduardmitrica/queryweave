@@ -1,0 +1,8 @@
+error: The struct's name `OrderModel` must be `MergePatch` followed by at least two pascal-case segments
+
+       = help: Rename the struct, e.g. `MergePatchOrderModel`
+
+ --> $DIR/improper_name.rs:4:8
+  |
+4 | struct OrderModel {
+  |        ^^^^^^^^^^

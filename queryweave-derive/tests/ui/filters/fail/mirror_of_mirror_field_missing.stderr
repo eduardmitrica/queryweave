@@ -1,0 +1,7 @@
+error[E0560]: struct `UsersFilterOptionsDto` has no field named `nickname_sw`
+  --> $DIR/mirror_of_mirror_field_missing.rs:25:13
+   |
+25 |         pub nickname: String,
+   |             ^^^^^^^^ `UsersFilterOptionsDto` does not have this field
+   |
+   = note: all struct fields are already assigned

@@ -1,0 +1,42 @@
+[package]
+name = "queryweave"
+# The five crates are versioned in lockstep.
+version = "0.1.0"
+description = "The core runtime of queryweave: the filtering, sorting, paging and merge-patch data its derives generate for a domain model, with no database dependency."
+authors = ["Eduard Mihai Mitrică"]
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+repository.workspace = true
+keywords = ["filter", "sort", "pagination", "merge-patch", "query"]
+categories = ["data-structures", "rust-patterns", "database"]
+edition.workspace = true
+# Checked with the oldest toolchain at hand: it may build on older ones.
+rust-version = "1.91"
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono.workspace = true
+serde = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
+validator = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+# Support for `Patch<T>` in an API's merge patch types, off by default: the
+# domain names none of these libraries. `queryweave-api`'s features of the same
+# name enable them.
+[features]
+# Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
+# and their runtime): on by default; turn the default features off for the
+# filters alone.
+default = ["merge-patch"]
+merge-patch = []
+# `Deserialize` / `Serialize` on `Patch<T>`.
+serde = ["dep:serde"]
+# `JsonSchema` on `Patch<T>`, documented as a nullable `T`.
+schemars = ["dep:schemars"]
+# validator's `range` rule on `Patch<T>` (it checks a value, when given).
+validator = ["dep:validator"]

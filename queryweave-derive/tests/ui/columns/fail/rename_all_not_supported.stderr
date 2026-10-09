@@ -1,0 +1,8 @@
+error: #[derive(Columns)] does not support #[sqlx(rename_all = "...")]
+
+       = help: Name each renamed column with #[sqlx(rename = "...")] on its field instead
+
+  --> $DIR/rename_all_not_supported.rs:10:8
+   |
+10 | #[sqlx(rename_all = "camelCase")]
+   |        ^^^^^^^^^^

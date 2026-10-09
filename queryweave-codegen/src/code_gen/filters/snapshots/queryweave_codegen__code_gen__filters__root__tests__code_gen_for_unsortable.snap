@@ -1,0 +1,158 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/filters/root.rs
+expression: "pretty(super::code_gen(intermediary_representation,\n&syn::parse_quote!(::queryweave)))"
+---
+/// Sortable fields enum.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum UserSortFieldModel {}
+impl UserSortFieldModel {
+    /// The name of the domain field sorted by.
+    #[must_use]
+    pub const fn field_name(self) -> &'static str {
+        match self {}
+    }
+}
+/// Struct containing information for sorting
+/// such as the field by which we sort and
+/// the order in which we want to sort it.
+#[derive(Debug, Clone)]
+pub struct UserSortDetailsModel {
+    /// The field to sort by.
+    pub field: UserSortFieldModel,
+    /// The direction to sort in.
+    pub order: ::queryweave::SortDirectionModel,
+}
+/// Filters derived from the original struct's fields.
+#[derive(Debug, Default, Clone)]
+pub struct UsersFilterOptionsModel {
+    /// Keeps the items whose `username` starts with the given value.
+    pub username_sw: Option<<String as ::queryweave::RawValue>::Raw>,
+}
+/// The domain fields these filters compare, for the persistence layer
+/// to map onto columns.
+impl ::queryweave::PersistedFields for UsersFilterOptionsModel {
+    const FIELD_NAMES: &'static [&'static str] = &["username"];
+}
+impl UsersFilterOptionsModel {
+    /// Check if there are any filters that are not `None`.
+    #[must_use]
+    pub fn has_options(&self) -> bool {
+        false || self.username_sw.is_some()
+    }
+    /// The filters that are set, as database-agnostic conditions for
+    /// the persistence layer to turn into a query.
+    #[must_use]
+    pub fn conditions(&self) -> ::queryweave::Conditions<Self> {
+        ::queryweave::__private::model_data({
+            let mut conditions = Vec::new();
+            if let Some(value) = &self.username_sw {
+                conditions
+                    .push(::queryweave::FilterCondition {
+                        field: "username",
+                        operator: ::queryweave::FilterOperator::StartsWith,
+                        value: ::queryweave::IntoValue::into_value(
+                            ::core::clone::Clone::clone(value),
+                        ),
+                    });
+            }
+            conditions
+        })
+    }
+}
+/// The struct used for keeping and page, page_size, sort, order and the inner filters.
+#[derive(Debug, Default, Clone)]
+pub struct UsersQueryModel {
+    /// Page to select (0 based).
+    pub page: Option<u32>,
+    /// Number of elements per page to get back.
+    pub page_size: Option<u32>,
+    /// Sort by some sortable fields.
+    pub sort: Option<Vec<UserSortDetailsModel>>,
+    /// AND filter options.
+    pub and: UsersFilterOptionsModel,
+}
+impl UsersQueryModel {
+    /// The requested sorting, in order, as database-agnostic sort keys
+    /// for the persistence layer to turn into a query.
+    #[must_use]
+    pub fn sort_keys(&self) -> ::queryweave::SortKeys<Self> {
+        ::queryweave::__private::model_data(
+            self
+                .sort
+                .iter()
+                .flatten()
+                .map(|details| ::queryweave::SortKey {
+                    field: details.field.field_name(),
+                    direction: details.order,
+                })
+                .collect(),
+        )
+    }
+}
+/// The domain fields this query filters or sorts by, for the
+/// persistence layer to map onto columns.
+impl ::queryweave::PersistedFields for UsersQueryModel {
+    const FIELD_NAMES: &'static [&'static str] = &["username"];
+}
+/// The types generated for this struct, for code mirroring it (e.g. an
+/// API DTO) to name through it.
+impl ::queryweave::Filterable for UserModel {
+    type Root = Self;
+    type Query = UsersQueryModel;
+    type FilterOptions = UsersFilterOptionsModel;
+    type SortField = UserSortFieldModel;
+    type SortDetails = UserSortDetailsModel;
+    fn query(
+        page: Option<u32>,
+        page_size: Option<u32>,
+        sort: Option<Vec<UserSortDetailsModel>>,
+        filters: UsersFilterOptionsModel,
+    ) -> UsersQueryModel {
+        UsersQueryModel {
+            page,
+            page_size,
+            sort,
+            and: filters,
+        }
+    }
+    fn into_root_query(
+        query: UsersQueryModel,
+    ) -> <Self::Root as ::queryweave::Filterable>::Query {
+        query
+    }
+}
+impl ::queryweave::IntoRootQuery<UserModel> for UsersQueryModel {
+    fn into_root_query(
+        self,
+    ) -> <<UserModel as ::queryweave::Filterable>::Root as ::queryweave::Filterable>::Query {
+        <UserModel as ::queryweave::Filterable>::into_root_query(self)
+    }
+}
+impl<T: ::queryweave::QueryOf<UserModel>> From<T> for UsersQueryModel {
+    fn from(value: T) -> Self {
+        ::queryweave::QueryOf::into_query(value)
+    }
+}
+impl<T: ::queryweave::FilterOptionsOf<UserModel>> From<T> for UsersFilterOptionsModel {
+    fn from(value: T) -> Self {
+        ::queryweave::FilterOptionsOf::into_filter_options(value)
+    }
+}
+impl<T: ::queryweave::SortFieldOf<UserModel>> From<T> for UserSortFieldModel {
+    fn from(value: T) -> Self {
+        ::queryweave::SortFieldOf::into_sort_field(value)
+    }
+}
+impl<T: ::queryweave::SortDetailsOf<UserModel>> From<T> for UserSortDetailsModel {
+    fn from(value: T) -> Self {
+        ::queryweave::SortDetailsOf::into_sort_details(value)
+    }
+}
+const _: fn() = || {
+    fn _assert_value<T: ::queryweave::IntoValue>() {}
+    fn _assert_ordered<T: ::queryweave::Ordered>() {}
+    fn _assert_text<T: ::queryweave::Text>() {}
+    fn _assert_boolean<T: ::queryweave::Boolean>() {}
+    _assert_value::<<String as ::queryweave::RawValue>::Raw>();
+    _assert_text::<<String as ::queryweave::RawValue>::Raw>();
+};

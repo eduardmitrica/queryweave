@@ -1,0 +1,43 @@
+[package]
+name = "queryweave-sql"
+# The five crates are versioned in lockstep.
+version = "0.1.0"
+description = "The SQL runtime of queryweave: database-agnostic sqlx query building (WHERE, ORDER BY, LIMIT/OFFSET, SET) from the data queryweave's derives generate."
+authors = ["Eduard Mihai Mitrică"]
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+repository.workspace = true
+keywords = ["sqlx", "sql", "filter", "pagination", "query"]
+categories = ["database"]
+edition.workspace = true
+# Checked with the oldest toolchain at hand: it may build on older ones.
+rust-version = "1.91"
+
+[lints]
+workspace = true
+
+[dependencies]
+queryweave = { path = "../queryweave", version = "0.1.0", default-features = false }
+
+chrono.workspace = true
+# No driver: the SQL helpers are generic over any database whose driver binds
+# the domain's raw values (`BindValues`).
+sqlx.workspace = true
+mutants.workspace = true
+
+[features]
+# Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
+# and their runtime): on by default; turn the default features off for the
+# filters alone.
+default = ["merge-patch"]
+merge-patch = ["queryweave/merge-patch"]
+
+[dev-dependencies]
+rstest.workspace = true
+pretty_assertions.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+# The tests render and run the SQL on every database sqlx supports.
+sqlx = { workspace = true, features = ["runtime-tokio", "postgres", "mysql", "sqlite", "chrono"] }
+# The database tests (`tests/postgres.rs`, `tests/mysql.rs`) start their
+# servers in containers.
+testcontainers.workspace = true

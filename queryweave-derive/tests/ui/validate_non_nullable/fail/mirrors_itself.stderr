@@ -1,0 +1,8 @@
+error: `MergePatchOrderDto` cannot link to itself with #[validate_non_nullable(mirrors = ...)]
+
+       = help: Name another struct, which `MergePatchOrderDto` mirrors
+
+ --> $DIR/mirrors_itself.rs:7:35
+  |
+7 | #[validate_non_nullable(mirrors = Self, validator)]
+  |                                   ^^^^

@@ -1,0 +1,8 @@
+error: The generated `sort_details` type and the generated `sort_field` type are both named `UserSort`
+
+       = help: Rename one of them, e.g. #[filters(sort_details = OtherName)]
+
+ --> $DIR/rename_clash.rs:5:49
+  |
+5 | #[filters(sort_field = UserSort, sort_details = UserSort)]
+  |                                                 ^^^^^^^^

@@ -1,0 +1,71 @@
+error[E0277]: the trait bound `UserModel: Filterable` is not satisfied
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:12:21
+   |
+12 | #[filters(mirrors = UserModel)]
+   |                     ^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Filterable` is not implemented for `UserModel`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:7:1
+   |
+ 7 | pub struct UserModel {
+   | ^^^^^^^^^^^^^^^^^^^^
+help: the trait `Filterable` is implemented for `UserDto`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:11:10
+   |
+11 | #[derive(Filters)]
+   |          ^^^^^^^
+   = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `UserModel: Filterable` is not satisfied
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:12:21
+   |
+12 | #[filters(mirrors = UserModel)]
+   |                     ^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Filterable` is not implemented for `UserModel`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:7:1
+   |
+ 7 | pub struct UserModel {
+   | ^^^^^^^^^^^^^^^^^^^^
+help: the trait `Filterable` is implemented for `UserDto`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:11:10
+   |
+11 | #[derive(Filters)]
+   |          ^^^^^^^
+note: required by a bound in `QueryOf`
+  --> $WORKSPACE/queryweave/src/filterable.rs
+   |
+   | pub trait QueryOf<M: Filterable> {
+   |                      ^^^^^^^^^^ required by this bound in `QueryOf`
+   = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `UserModel: Filterable` is not satisfied
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:12:21
+   |
+12 | #[filters(mirrors = UserModel)]
+   |                     ^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Filterable` is not implemented for `UserModel`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:7:1
+   |
+ 7 | pub struct UserModel {
+   | ^^^^^^^^^^^^^^^^^^^^
+help: the trait `Filterable` is implemented for `UserDto`
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:11:10
+   |
+11 | #[derive(Filters)]
+   |          ^^^^^^^
+note: required by a bound in `FilterOptionsOf`
+  --> $WORKSPACE/queryweave/src/filterable.rs
+   |
+   | pub trait FilterOptionsOf<M: Filterable> {
+   |                              ^^^^^^^^^^ required by this bound in `FilterOptionsOf`
+   = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0071]: expected struct, variant or union type, found inferred type
+  --> tests/ui/filters/fail/mirror_mirrors_not_filterable.rs:11:10
+   |
+11 | #[derive(Filters)]
+   |          ^^^^^^^ not a struct
+   |
+   = note: this error originates in the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)

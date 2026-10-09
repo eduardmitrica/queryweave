@@ -1,0 +1,8 @@
+error: #[equivalent_field(...)] only applies to a mirror (a struct with #[filters(mirrors = path)])
+
+       = help: Link the struct to the model it mirrors with #[filters(mirrors = path)], or remove the attribute
+
+ --> $DIR/root_equivalent_field.rs:8:5
+  |
+8 |     #[equivalent_field(number)]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^

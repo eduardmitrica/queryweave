@@ -1,0 +1,8 @@
+error: The domain merge patch model's name `PatchOrderModel` must be `MergePatch` followed by at least two pascal-case segments
+
+       = help: Rename the domain merge patch model, e.g. `MergePatchOrderModel`
+
+ --> $DIR/mirrors_misnamed.rs:8:35
+  |
+8 | #[validate_non_nullable(mirrors = domain::models::PatchOrderModel, validator)]
+  |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,11 @@
+error[E0275]: overflow evaluating the requirement `<MergePatchOrderDto as NullableFields>::Root == _`
+ --> $DIR/mirror_cycle.rs:9:39
+  |
+9 |     #[validate_non_nullable(mirrors = super::grpc::MergePatchOrderMessage, validator)]
+  |                                       ^^^^^
+
+error[E0275]: overflow evaluating the requirement `<MergePatchOrderMessage as NullableFields>::Root == _`
+  --> $DIR/mirror_cycle.rs:20:39
+   |
+20 |     #[validate_non_nullable(mirrors = super::api::MergePatchOrderDto, validator)]
+   |                                       ^^^^^

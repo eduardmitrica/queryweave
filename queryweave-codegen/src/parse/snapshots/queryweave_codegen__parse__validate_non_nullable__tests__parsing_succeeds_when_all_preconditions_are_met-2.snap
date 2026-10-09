@@ -1,0 +1,188 @@
+---
+source: queryweave/queryweave-codegen/src/parse/validate_non_nullable.rs
+expression: named_fields
+---
+FieldsNamed {
+    brace_token: Brace,
+    named: [
+        Field {
+            attrs: [],
+            vis: Visibility::Public(
+                Token![pub],
+            ),
+            modifiers: FieldModifiers,
+            ident: Some(
+                Ident(
+                    value,
+                ),
+            ),
+            colon_token: Some(
+                Token![:],
+            ),
+            ty: Type::Path {
+                attrs: [],
+                qself: None,
+                path: Path {
+                    leading_colon: None,
+                    segments: [
+                        PathSegment {
+                            ident: Ident(
+                                Option,
+                            ),
+                            arguments: PathArguments::AngleBracketed {
+                                colon2_token: None,
+                                lt_token: Token![<],
+                                args: [
+                                    GenericArgument::Type(
+                                        Type::Path {
+                                            attrs: [],
+                                            qself: None,
+                                            path: Path {
+                                                leading_colon: None,
+                                                segments: [
+                                                    PathSegment {
+                                                        ident: Ident(
+                                                            Option,
+                                                        ),
+                                                        arguments: PathArguments::AngleBracketed {
+                                                            colon2_token: None,
+                                                            lt_token: Token![<],
+                                                            args: [
+                                                                GenericArgument::Type(
+                                                                    Type::Path {
+                                                                        attrs: [],
+                                                                        qself: None,
+                                                                        path: Path {
+                                                                            leading_colon: None,
+                                                                            segments: [
+                                                                                PathSegment {
+                                                                                    ident: Ident(
+                                                                                        f64,
+                                                                                    ),
+                                                                                    arguments: PathArguments::None,
+                                                                                },
+                                                                            ],
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            ],
+                                                            gt_token: Token![>],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ),
+                                ],
+                                gt_token: Token![>],
+                            },
+                        },
+                    ],
+                },
+            },
+            default: None,
+        },
+        Token![,],
+        Field {
+            attrs: [],
+            vis: Visibility::Public(
+                Token![pub],
+            ),
+            modifiers: FieldModifiers,
+            ident: Some(
+                Ident(
+                    delivery_date,
+                ),
+            ),
+            colon_token: Some(
+                Token![:],
+            ),
+            ty: Type::Path {
+                attrs: [],
+                qself: None,
+                path: Path {
+                    leading_colon: None,
+                    segments: [
+                        PathSegment {
+                            ident: Ident(
+                                Option,
+                            ),
+                            arguments: PathArguments::AngleBracketed {
+                                colon2_token: None,
+                                lt_token: Token![<],
+                                args: [
+                                    GenericArgument::Type(
+                                        Type::Path {
+                                            attrs: [],
+                                            qself: None,
+                                            path: Path {
+                                                leading_colon: None,
+                                                segments: [
+                                                    PathSegment {
+                                                        ident: Ident(
+                                                            Option,
+                                                        ),
+                                                        arguments: PathArguments::AngleBracketed {
+                                                            colon2_token: None,
+                                                            lt_token: Token![<],
+                                                            args: [
+                                                                GenericArgument::Type(
+                                                                    Type::Path {
+                                                                        attrs: [],
+                                                                        qself: None,
+                                                                        path: Path {
+                                                                            leading_colon: None,
+                                                                            segments: [
+                                                                                PathSegment {
+                                                                                    ident: Ident(
+                                                                                        DateTime,
+                                                                                    ),
+                                                                                    arguments: PathArguments::AngleBracketed {
+                                                                                        colon2_token: None,
+                                                                                        lt_token: Token![<],
+                                                                                        args: [
+                                                                                            GenericArgument::Type(
+                                                                                                Type::Path {
+                                                                                                    attrs: [],
+                                                                                                    qself: None,
+                                                                                                    path: Path {
+                                                                                                        leading_colon: None,
+                                                                                                        segments: [
+                                                                                                            PathSegment {
+                                                                                                                ident: Ident(
+                                                                                                                    Utc,
+                                                                                                                ),
+                                                                                                                arguments: PathArguments::None,
+                                                                                                            },
+                                                                                                        ],
+                                                                                                    },
+                                                                                                },
+                                                                                            ),
+                                                                                        ],
+                                                                                        gt_token: Token![>],
+                                                                                    },
+                                                                                },
+                                                                            ],
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            ],
+                                                            gt_token: Token![>],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ),
+                                ],
+                                gt_token: Token![>],
+                            },
+                        },
+                    ],
+                },
+            },
+            default: None,
+        },
+        Token![,],
+    ],
+}

@@ -1,0 +1,8 @@
+error: The `mirrors` option of #[filters(...)] takes a value
+
+       = help: Write the option as #[filters(mirrors = ...)]
+
+ --> $DIR/mirror_mirrors_without_model.rs:5:11
+  |
+5 | #[filters(mirrors)]
+  |           ^^^^^^^

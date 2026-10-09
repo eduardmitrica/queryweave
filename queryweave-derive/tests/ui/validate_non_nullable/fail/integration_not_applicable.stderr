@@ -1,0 +1,8 @@
+error: `serde` does not apply to ValidateNonNullable
+
+       = help: Name the validation library defining validate_non_nullable: one of validator, garde
+
+  --> $DIR/integration_not_applicable.rs:10:57
+   |
+10 | #[validate_non_nullable(mirrors = MergePatchOrderModel, serde)]
+   |                                                         ^^^^^

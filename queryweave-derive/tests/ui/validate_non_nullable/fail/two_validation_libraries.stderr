@@ -1,0 +1,8 @@
+error: `validator` and `garde` would both define validate_non_nullable
+
+       = help: Keep the one validation library the DTO uses
+
+  --> $DIR/two_validation_libraries.rs:10:68
+   |
+10 | #[validate_non_nullable(mirrors = MergePatchOrderModel, validator, garde)]
+   |                                                                    ^^^^^

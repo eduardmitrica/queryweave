@@ -1,0 +1,17 @@
+error: The merge patch model's name `PatchOrderModel` must be `MergePatch` followed by at least two pascal-case segments
+
+       = help: Rename the merge patch model, e.g. `MergePatchOrderModel`
+
+  --> $DIR/misnamed_model_and_malformed_field.rs:11:23
+   |
+11 | #[merge_patch(patch = PatchOrderModel)]
+   |                       ^^^^^^^^^^^^^^^
+
+error: Only skip is available inside the merge_patch attribute
+
+       = help: Either remove #[merge_patch(...)] or correct it to be #[merge_patch(skip)]
+
+  --> $DIR/misnamed_model_and_malformed_field.rs:13:19
+   |
+13 |     #[merge_patch(ignore)]
+   |                   ^^^^^^

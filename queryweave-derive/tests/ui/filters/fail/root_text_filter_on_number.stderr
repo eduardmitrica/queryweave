@@ -1,0 +1,22 @@
+error[E0277]: `i32` does not support the `sw` / `c` / `ew` filters
+ --> tests/ui/filters/fail/root_text_filter_on_number.rs:6:10
+  |
+6 |     age: i32,
+  |          ^^^ not text
+  |
+  = help: the trait `queryweave::Text` is not implemented for `i32`
+  = note: `sw` / `c` / `ew` apply to `String`s
+help: the trait `queryweave::Text` is implemented for `String`
+ --> $WORKSPACE/queryweave/src/raw_value.rs
+  |
+  |         $(impl $marker for $ty {})*
+  |           ^^^^^^^^^^^^^^^^^^^^
+...
+  | impl_marker!(Text: String);
+  | -------------------------- in this macro invocation
+note: required by a bound in `_assert_text`
+ --> tests/ui/filters/fail/root_text_filter_on_number.rs:3:10
+  |
+3 | #[derive(Filters)]
+  |          ^^^^^^^ required by this bound in `_assert_text`
+  = note: this error originates in the macro `impl_marker` which comes from the expansion of the derive macro `Filters` (in Nightly builds, run with -Z macro-backtrace for more info)

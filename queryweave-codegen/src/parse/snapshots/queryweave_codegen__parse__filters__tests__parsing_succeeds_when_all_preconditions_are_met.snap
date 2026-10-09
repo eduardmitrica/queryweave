@@ -1,0 +1,27 @@
+---
+source: queryweave/queryweave-codegen/src/parse/filters.rs
+expression: idents
+---
+FiltersNames {
+    query: Ident(
+        UsersQueryModel,
+    ),
+    filters: Ident(
+        UsersFilterOptionsModel,
+    ),
+    sort_field: Ident(
+        UserSortFieldModel,
+    ),
+    sort_details: Ident(
+        UserSortDetailsModel,
+    ),
+    input: Ident(
+        UserModel,
+    ),
+    page: Ident(
+        UsersPageModel,
+    ),
+    query_params: Ident(
+        UsersQueryParams,
+    ),
+}

@@ -1,0 +1,8 @@
+error: The filter-options wrapper's name `orders_filter_options_model_wrapper` is not pascal cased
+
+       = help: Rename the filter-options wrapper in PascalCase
+
+  --> $DIR/filters_not_pascal_case.rs:20:46
+   |
+20 | #[append_to_query(columns = Order, filters = orders_filter_options_model_wrapper)]
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,8 @@
+error: The #[equivalent_field(...)] attribute takes exactly one field name
+
+       = help: Name the field it maps to: #[equivalent_field(name)]
+
+  --> $DIR/mirror_malformed_equivalent_field.rs:13:7
+   |
+13 |     #[equivalent_field(number, client)]
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

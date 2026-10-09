@@ -1,0 +1,13 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/raw_value.rs
+expression: "code_gen(quote::quote! { struct OrderId(i32); })"
+---
+impl ::queryweave::RawValue for OrderId
+where
+    i32: ::queryweave::RawValue,
+{
+    type Raw = <i32 as ::queryweave::RawValue>::Raw;
+    fn to_raw(&self) -> Self::Raw {
+        ::queryweave::RawValue::to_raw(&self.0)
+    }
+}

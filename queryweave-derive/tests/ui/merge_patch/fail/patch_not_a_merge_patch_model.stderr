@@ -1,0 +1,17 @@
+error[E0277]: `MergePatchOrderModel` is not a merge patch model
+  --> $DIR/patch_not_a_merge_patch_model.rs:12:23
+   |
+12 | #[merge_patch(patch = MergePatchOrderModel)]
+   |                       ^^^^^^^^^^^^^^^^^^^^ does not derive `MergePatchNullableFields`
+   |
+help: the trait `MergePatchNullableFields` is not implemented for `MergePatchOrderModel`
+  --> $DIR/patch_not_a_merge_patch_model.rs:7:1
+   |
+ 7 | pub struct MergePatchOrderModel {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: derive `MergePatchNullableFields` on the merge patch struct; its fields are `Option<T>` (cannot be cleared) or `queryweave::Patch<T>` (can), never `Option<Option<T>>`
+note: required by a bound in `merge_patch_model`
+  --> $DIR/patch_not_a_merge_patch_model.rs:12:23
+   |
+12 | #[merge_patch(patch = MergePatchOrderModel)]
+   |                       ^^^^^^^^^^^^^^^^^^^^ required by this bound in `merge_patch_model`

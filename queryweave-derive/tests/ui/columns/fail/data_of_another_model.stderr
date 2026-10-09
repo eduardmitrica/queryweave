@@ -1,0 +1,30 @@
+error[E0080]: evaluation panicked: domain field `username` has no column on `Order`: add a field of that name to the entity, or map one onto it with `#[domain_field(username)]`
+  --> tests/ui/columns/fail/data_of_another_model.rs:19:10
+   |
+19 | #[derive(Columns)]
+   |          ^^^^^^^ evaluation of `Order::push_assignments::<sqlx::Postgres, UserModel>::{constant#0}` failed inside this call
+   |
+note: inside `queryweave_sql::__private::assert_model_columns::<Order, UserModel>`
+  --> $RUST/core/src/panic.rs
+   |
+   |         $crate::panicking::panic_display(&$arg);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |
+  ::: $WORKSPACE/queryweave-sql/src/columns.rs
+   |
+   |         panic!("{}", missing_column_message(C::NAME, field).as_str());
+   |         ------------------------------------------------------------- in this macro invocation
+
+note: erroneous constant encountered
+  --> tests/ui/columns/fail/data_of_another_model.rs:19:10
+   |
+19 | #[derive(Columns)]
+   |          ^^^^^^^
+   |
+   = note: this note originates in the derive macro `Columns` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+note: the above error was encountered while instantiating `fn Order::push_assignments::<Postgres, UserModel>`
+  --> tests/ui/columns/fail/data_of_another_model.rs:31:13
+   |
+31 |     let _ = Order::push_assignments(&mut query_builder, user_values);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

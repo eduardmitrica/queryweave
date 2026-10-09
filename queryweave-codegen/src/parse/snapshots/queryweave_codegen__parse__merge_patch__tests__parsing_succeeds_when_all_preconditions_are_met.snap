@@ -1,0 +1,7 @@
+---
+source: queryweave/queryweave-codegen/src/parse/merge_patch.rs
+expression: ident
+---
+Ident(
+    OrderModel,
+)

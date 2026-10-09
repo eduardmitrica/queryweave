@@ -1,0 +1,5 @@
+error[E0425]: cannot find type `OrdersFilterOptionsModel` in this scope
+  --> $DIR/filters_not_derived_on_inner.rs:16:48
+   |
+16 | pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope

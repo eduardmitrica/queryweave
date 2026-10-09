@@ -1,0 +1,38 @@
+[package]
+name = "queryweave-codegen"
+# The five crates are versioned in lockstep.
+version = "0.1.0"
+description = "The code generation behind queryweave's derives, for proc-macro crates with their own naming conventions and integrations."
+authors = ["Eduard Mihai Mitrică"]
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+repository.workspace = true
+keywords = ["proc-macro", "codegen", "derive", "filter", "conventions"]
+categories = ["development-tools::procedural-macro-helpers"]
+edition.workspace = true
+# Checked with the oldest toolchain at hand: it may build on older ones.
+rust-version = "1.91"
+
+[lints]
+workspace = true
+
+[dependencies]
+proc-macro2.workspace = true
+syn = { workspace = true, features = ["extra-traits", "full"] }
+quote.workspace = true
+derive-new.workspace = true
+fancy-regex.workspace = true
+mutants.workspace = true
+
+[features]
+# Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
+# and their runtime): on by default; turn the default features off for the
+# filters alone.
+default = ["merge-patch"]
+merge-patch = []
+
+[dev-dependencies]
+insta.workspace = true
+pretty_assertions.workspace = true
+prettyplease.workspace = true
+rstest.workspace = true

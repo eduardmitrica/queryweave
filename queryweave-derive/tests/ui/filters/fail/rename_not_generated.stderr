@@ -1,0 +1,8 @@
+error: `query_params` names a type a root model does not generate
+
+       = help: A root model generates: query, filter_options, sort_field, sort_details
+
+ --> $DIR/rename_not_generated.rs:6:26
+  |
+6 | #[filters(query_params = UserSearchParams)]
+  |                          ^^^^^^^^^^^^^^^^

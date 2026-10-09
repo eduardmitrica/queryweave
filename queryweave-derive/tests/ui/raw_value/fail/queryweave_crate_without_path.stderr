@@ -1,0 +1,8 @@
+error: The `crate` option of #[queryweave(...)] takes a value
+
+       = help: Write the option as #[queryweave(crate = ...)]
+
+ --> $DIR/queryweave_crate_without_path.rs:5:14
+  |
+5 | #[queryweave(crate)]
+  |              ^^^^^

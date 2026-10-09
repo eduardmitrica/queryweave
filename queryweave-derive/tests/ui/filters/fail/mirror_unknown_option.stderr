@@ -1,0 +1,8 @@
+error: Unknown #[filters(...)] option `mirror`
+
+       = help: Use one of: mirrors, query, filter_options, sort_field, sort_details, page, query_params, serde, utoipa, validator, schemars, garde
+
+ --> $DIR/mirror_unknown_option.rs:6:11
+  |
+6 | #[filters(mirror = UserModel)]
+  |           ^^^^^^

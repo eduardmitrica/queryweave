@@ -1,0 +1,10 @@
+error[E0609]: no field `numbr` on type `MergePatchInvoiceModel`
+  --> $DIR/equivalent_field_missing_on_model.rs:14:24
+   |
+14 |     #[equivalent_field(numbr)]
+   |                        ^^^^^ unknown field
+   |
+help: a field with a similar name exists
+   |
+14 |     #[equivalent_field(number)]
+   |                            +

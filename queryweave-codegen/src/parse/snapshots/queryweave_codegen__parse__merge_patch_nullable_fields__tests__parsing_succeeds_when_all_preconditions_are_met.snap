@@ -1,0 +1,7 @@
+---
+source: queryweave/queryweave-codegen/src/parse/merge_patch_nullable_fields.rs
+expression: ident
+---
+Ident(
+    MergePatchUserModel,
+)
