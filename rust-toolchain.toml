@@ -1,3 +1,5 @@
 [toolchain]
 channel = "1.99.0"
-components = ["rust-analyzer", "clippy", "rustfmt"]
+# `rust-src` lets rustc quote the standard library's source in diagnostics,
+# which some trybuild `.stderr` files expect: without it, the UI tests fail.
+components = ["rust-analyzer", "clippy", "rustfmt", "rust-src"]
