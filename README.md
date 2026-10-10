@@ -138,7 +138,7 @@ on nothing but `queryweave`; each flag adds what that library needs:
 | `garde`     | Validation of the page size and sort, without a serializer.                                      |
 
 Each layer picks its own flags, so a gRPC layer mirroring the same model does
-not pull in the API layer's libraries. See [docs/integrations.md](docs/integrations.md).
+not pull in the API layer's libraries. See [docs/integrations.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/integrations.md).
 
 ## Your own rules
 
@@ -147,15 +147,15 @@ The names queryweave generates follow conventions: `UserModel` gets
 with `sw` is `username_sw`. If your project names things differently, or
 needs an integration queryweave does not ship (another serializer, GraphQL),
 you write a small proc-macro crate of your own on top of `queryweave-codegen`
-with your conventions. See [docs/conventions.md](docs/conventions.md).
+with your conventions. See [docs/conventions.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/conventions.md).
 
 ## Documentation
 
-- [docs/guide.md](docs/guide.md): every derive, what you write and what you get.
-- [docs/integrations.md](docs/integrations.md): the integration flags, and writing your own.
-- [docs/conventions.md](docs/conventions.md): naming rules and runtime paths of your own.
-- [docs/architecture.md](docs/architecture.md): how it works inside, for contributors.
-- [docs/ai/architecture-reference.md](docs/ai/architecture-reference.md): a condensed reference for AI agents.
+- [docs/guide.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/guide.md): every derive, what you write and what you get.
+- [docs/integrations.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/integrations.md): the integration flags, and writing your own.
+- [docs/conventions.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/conventions.md): naming rules and runtime paths of your own.
+- [docs/architecture.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/architecture.md): how it works inside, for contributors.
+- [docs/ai/architecture-reference.md](https://github.com/eduardmitrica/queryweave/blob/main/docs/ai/architecture-reference.md): a condensed reference for AI agents.
 
 ## Development
 
@@ -192,9 +192,16 @@ or `scripts/check.sh` apply right away.
 
 ## Status
 
-queryweave is not published to crates.io yet: depend on it from this
-repository, with `git = "https://github.com/eduardmitrica/queryweave"`. Its
-version is `0.1.0`: the API may still change before `1.0`.
+queryweave is published on crates.io. Depend on `queryweave-derive` and on the
+runtime crate of each layer (see [The crates](#the-crates)):
+
+```toml
+[dependencies]
+queryweave-derive = "0.1"
+queryweave = "0.1" # or `queryweave-api` / `queryweave-sql`, per layer
+```
+
+Its version is `0.1.0`: the API may still change before `1.0`.
 
 ## Minimum supported Rust version
 
@@ -202,8 +209,8 @@ Rust 1.88.
 
 ## License
 
-Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
-[MIT license](LICENSE-MIT), at your option.
+Licensed under either of [Apache License, Version 2.0](https://github.com/eduardmitrica/queryweave/blob/main/LICENSE-APACHE) or
+[MIT license](https://github.com/eduardmitrica/queryweave/blob/main/LICENSE-MIT), at your option.
 
 Unless you explicitly state otherwise, any contribution intentionally
 submitted for inclusion in this crate by you, as defined in the Apache-2.0

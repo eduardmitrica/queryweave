@@ -14,8 +14,9 @@ from). The explanations for people are in `README.md` and `docs/`; see [Docs](#d
   Actions (`.github/workflows/ci.yml`).
 - Version `0.1.0`, the five published crates in lockstep; licensed `MIT OR Apache-2.0`
   (`LICENSE-MIT` / `LICENSE-APACHE` at the root and in each published crate); MSRV 1.88; one shared
-  `README.md` is each crate's readme; `repository` comes from `[workspace.package]`. Not published
-  to crates.io yet: consumers use it as a git dependency.
+  `README.md` is each crate's readme; `repository` comes from `[workspace.package]`. Published
+  on crates.io (`cargo publish --workspace`, the five crates together); the README's links are
+  absolute GitHub URLs, since it is rendered on each crate's crates.io page.
 - A dependency between queryweave crates carries `version` next to `path` (needed to publish).
 - It was extracted (issue #54) from the **rust-axum-sqlx** boilerplate, which remains its reference
   consumer: a domain / application / infrastructure / api layering over Axum + SQLx, depending on
