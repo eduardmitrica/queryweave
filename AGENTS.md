@@ -13,7 +13,7 @@ from). The explanations for people are in `README.md` and `docs/`; see [Docs](#d
 - Repository: <https://github.com/eduardmitrica/queryweave>, default branch `main`, CI on GitHub
   Actions (`.github/workflows/ci.yml`).
 - Version `0.1.0`, the five published crates in lockstep; licensed `MIT OR Apache-2.0`
-  (`LICENSE-MIT` / `LICENSE-APACHE` at the root and in each published crate); MSRV 1.91; one shared
+  (`LICENSE-MIT` / `LICENSE-APACHE` at the root and in each published crate); MSRV 1.88; one shared
   `README.md` is each crate's readme; `repository` comes from `[workspace.package]`. Not published
   to crates.io yet: consumers use it as a git dependency.
 - A dependency between queryweave crates carries `version` next to `path` (needed to publish).

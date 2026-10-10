@@ -19,7 +19,7 @@
 | `queryweave-custom-conventions` | proc-macro | Test fixture: other conventions and an integration (`wire`). `publish = false`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 Versioning: `0.1.0`, all five published crates in lockstep. License `MIT OR Apache-2.0`.
-MSRV 1.91. A dependency between queryweave crates has `version` next to `path`.
+MSRV 1.88. A dependency between queryweave crates has `version` next to `path`.
 
 ## Invariants
 

@@ -198,7 +198,7 @@ version is `0.1.0`: the API may still change before `1.0`.
 
 ## Minimum supported Rust version
 
-Rust 1.91.
+Rust 1.88.
 
 ## License
 

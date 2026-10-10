@@ -10,8 +10,7 @@ repository.workspace = true
 keywords = ["proc-macro", "codegen", "derive", "filter", "conventions"]
 categories = ["development-tools::procedural-macro-helpers"]
 edition.workspace = true
-# Checked with the oldest toolchain at hand: it may build on older ones.
-rust-version = "1.91"
+rust-version = "1.88"
 
 [lints]
 workspace = true
