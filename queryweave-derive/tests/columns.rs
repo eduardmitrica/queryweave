@@ -51,7 +51,7 @@ fn the_entity_maps_each_domain_field_onto_its_column() {
 // The SQL methods are inherent, usable without importing the trait, and write
 // the entity's columns.
 #[test]
-fn the_generated_methods_write_the_entitys_columns() {
+fn the_generated_methods_write_the_columns_of_the_entity() {
     let before = OrderModel {
         number: String::from("A-1"),
         delivery_date: 1,

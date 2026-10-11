@@ -1,0 +1,4 @@
+[files]
+# The trybuild `fail` cases misspell names on purpose (a stale field name is
+# what they test), and their `.stderr` files quote the compiler.
+extend-exclude = ["*/tests/ui/*/fail/*.rs", "*/tests/ui/*/fail/*.stderr"]
