@@ -40,6 +40,17 @@ Some notes on how they combine:
 
 - `validator` needs `serde` because a validation error carries the rejected
   value, which `validator` serializes. `garde` has no such requirement.
+- Both validation integrations check paging and sorting only: `page_size`
+  must be at least 1, and `sort` must hold between one detail and one per
+  sortable field, none repeated. The filters themselves are left
+  unvalidated (with `garde`, the query parameters carry
+  `#[garde(allow_unvalidated)]` for that, since it otherwise requires a rule
+  on every field).
+- The "none repeated" rule is a public function generated on the mirror's
+  sort details type, so several sortable mirrors can live in one module:
+  `validate_sort` with `validator` (`UserSortDetailsDto::validate_sort`), and
+  `garde_unique_sort` with `garde`. You can call them yourself, for example
+  to check sort details that arrive outside the query parameters.
 - `serde`, `utoipa` and `schemars` use `queryweave-api`'s `SortDirectionDto`
   for the sort direction. Without them, the mirror uses the core
   `SortDirectionModel`. Mirrors of either kind chain into each other: the two

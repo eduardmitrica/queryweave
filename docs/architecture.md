@@ -212,6 +212,20 @@ errors are reported together: struct attributes with parsing, then mapping
 with analysis. Inside a step, several errors are collected with
 `errors::Errors`.
 
+![The pipeline every derive runs](../assets/proc-macro.png)
+
+Green marks the steps reading and resolving what a derive links to, red the
+step simple derives skip. The dotted boxes are the stages `expand` runs side
+by side.
+
+The diagram is generated from [its Graphviz source](../assets/proc-macro.dot).
+After changing the pipeline, update the source and regenerate it (requires
+[Graphviz](https://graphviz.org)):
+
+```shell
+dot -Tpng -Gdpi=110 assets/proc-macro.dot -o assets/proc-macro.png
+```
+
 Struct attributes are read only through the option readers in `attributes`
 (`path_option`, `required_path_option`, `flag_option`), which reject unknown,
 repeated and malformed options. Every link to another type is an option of
