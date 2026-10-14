@@ -9,6 +9,7 @@ mod bind;
 
 pub use bind::BindValues;
 
+use super::column;
 #[cfg(feature = "merge-patch")]
 use crate::AssignmentsTarget;
 use crate::sql::{
@@ -21,17 +22,6 @@ use queryweave::{FieldValue, FieldValues};
 use sqlx::QueryBuilder;
 #[cfg(feature = "merge-patch")]
 use sqlx::query_builder::Separated;
-
-/// The column `C` stores a domain field in.
-///
-/// The writers below take the data of a model `M` (a
-/// `queryweave::ModelData<M, _>`, whose items only name fields of `M`), and
-/// `Columns`' methods check at compile time that every field of `M` has a
-/// column on `C`, so the lookup cannot miss. The fallback to the field's own
-/// name only satisfies the types (a runtime panic is not allowed here).
-fn column<C: Columns + ?Sized>(field: &'static str) -> &'static str {
-    C::column(field).unwrap_or(field)
-}
 
 /// Push a `column operator value` comparison and bind the value, the column
 /// being the one `C` stores the condition's domain field in.

@@ -24,6 +24,23 @@ jobs:
       # The runner has Docker, for the Postgres, MySQL and MariaDB containers.
       - run: sh scripts/check.sh ci
 
+  # The published crates' libraries, with every feature, build on the
+  # `rust-version` they declare. Tests and dev-dependencies (SeaORM needs a
+  # newer Rust) are not built: the MSRV promise is the libraries'.
+  msrv:
+    name: MSRV (Rust 1.88)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install 1.88.0 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: msrv
+      - run: >-
+          cargo +1.88.0 check --locked
+          -p queryweave -p queryweave-api -p queryweave-sql -p queryweave-codegen -p queryweave-derive
+          --all-features
+
   ui:
     name: UI tests (trybuild)
     runs-on: ubuntu-latest

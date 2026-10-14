@@ -7,14 +7,14 @@ queryweave, read the [guide](guide.md) instead.
 
 ## The crates
 
-| Crate                           | Kind       | Role                                                                                                               |
-| ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
-| `queryweave`                    | library    | Core runtime: what the code generated for a domain model names. No database or serializer dependency.              |
-| `queryweave-api`                | library    | API runtime: `PageDto`, `SortDirectionDto`, one feature per integration (`serde`, `utoipa`, `schemars`).           |
-| `queryweave-sql`                | library    | SQL runtime: `Columns`, the clause writers, generic over the query (sqlx's, feature `sqlx`). No driver dependency. |
-| `queryweave-codegen`            | library    | The code generation of every derive, as ordinary functions generic over the conventions.                           |
-| `queryweave-derive`             | proc-macro | The derives, each one line calling `queryweave-codegen` with the default conventions.                              |
-| `queryweave-custom-conventions` | proc-macro | Test fixture: the derives under other conventions and an integration of its own. Not published.                    |
+| Crate                           | Kind       | Role                                                                                                                                                              |
+| ------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryweave`                    | library    | Core runtime: what the code generated for a domain model names. No database or serializer dependency.                                                             |
+| `queryweave-api`                | library    | API runtime: `PageDto`, `SortDirectionDto`, one feature per integration (`serde`, `utoipa`, `schemars`).                                                          |
+| `queryweave-sql`                | library    | SQL runtime: `Columns`, the clause writers, generic over the query (sqlx's, feature `sqlx`; sea-query's and SeaORM's, feature `sea-query`). No driver dependency. |
+| `queryweave-codegen`            | library    | The code generation of every derive, as ordinary functions generic over the conventions.                                                                          |
+| `queryweave-derive`             | proc-macro | The derives, each one line calling `queryweave-codegen` with the default conventions.                                                                             |
+| `queryweave-custom-conventions` | proc-macro | Test fixture: the derives under other conventions and an integration of its own. Not published.                                                                   |
 
 Two rules shape this split:
 
@@ -145,20 +145,35 @@ monomorphization) that every field of the model has a column. They then hand
 the data and the entity's columns to the query being built, through one
 trait per clause it can take (`ConditionsTarget`, `OrderByTarget`,
 `AssignmentsTarget`, `PageTarget`): the generated code names no query
-builder, and the target decides how the clause is written. sqlx's
-`QueryBuilder` is the one implemented, appending SQL text and binding the
-values. Each query builder is a backend module (`backend/sqlx.rs`) behind a
-Cargo feature of its name (`sqlx`, on by default), which only adds the
-target-trait impls, so unifying features never changes generated code. The
-target traits name the feature in their `diagnostic::on_unimplemented`
-message, so a disabled backend is reported as such rather than as a missing
-trait.
+builder, and the target decides how the clause is written. Two are
+implemented. sqlx's `QueryBuilder` appends SQL text and binds the values.
+sea-query's `SelectStatement`, `UpdateStatement` and `DeleteStatement` (which
+SeaORM's queries hand out through `QueryTrait::query`) receive expressions
+instead: the conditions as one `Condition` (`all` or `any`, by the
+`Junction`) through `cond_where`, the sort keys through `order_by`, the page
+through `limit` and `offset`, the assignments through `value`; sea-query then
+renders them per database. Both backends write the same comparisons, binds
+and `LIKE … ESCAPE '!'` patterns, from the helpers in `sql.rs`.
+
+Each query builder is a backend module (`backend/sqlx.rs`,
+`backend/sea_query.rs`) behind a Cargo feature of its name (`sqlx`, on by
+default; `sea-query`), which only adds the target-trait impls, so unifying
+features never changes generated code. The target traits name the features in
+their `diagnostic::on_unimplemented` message, so a disabled backend is
+reported as such rather than as a missing trait.
+
+`Columns` reads the column names from the ORM attributes of either library:
+`#[sqlx(rename)]` or `#[sea_orm(column_name)]` (which must agree when both
+are given), and leaves out `#[sqlx(skip)]`, `#[sqlx(flatten)]` and
+`#[sea_orm(ignore)]` fields. It rejects either's `rename_all`, a renaming it
+does not model.
 
 All SQL in `queryweave-sql` and the code generated for it is portable:
 generic over the query (and, for sqlx, over `DB: BindValues`), standard SQL only (no `RETURNING`, `ILIKE`,
 casts or quoted identifiers), every value bound, `LIKE` patterns escaped with
-`!`. Each SQL helper has a rendering test per database, and runs against
-SQLite.
+`!`. (sea-query quotes identifiers itself when it renders, so through it column
+names match case-sensitively on Postgres.) Each SQL helper has a rendering test
+per database for each backend, and runs against SQLite.
 
 ### Field types
 
@@ -327,7 +342,10 @@ change.
 - `queryweave-api/tests/ui/features` checks the feature checks both ways;
   `scripts/check.sh` builds `queryweave-api` alone under each feature
   combination, since a workspace build unifies them.
-- `queryweave-sql/tests/sqlite.rs` runs the SQL against SQLite, in memory.
+- `queryweave-sql/tests/sqlite.rs` runs the SQL against SQLite, in memory,
+  and `tests/sea_query_sqlite.rs` the sea-query backend's, through
+  `sea-query-sqlx`. `queryweave-derive/tests/sea_orm.rs` writes into real
+  SeaORM entities' queries.
   `tests/postgres.rs` and `tests/mysql.rs` (MySQL and MariaDB) run it against
   real servers, which they start in containers, so they need Docker; the
   `fast` nextest profile leaves them out.

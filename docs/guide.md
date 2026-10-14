@@ -194,11 +194,18 @@ reaches a root model".
 ## 3. The database: `Columns`, `AppendToQuery`, `AppendToQueryWithSeparator`
 
 The persistence layer maps the model's fields onto the columns of its entity,
-then builds SQL from the query. The SQL is built on
-[sqlx](https://docs.rs/sqlx): the clauses are appended to a sqlx
-`QueryBuilder`, for any of Postgres, MySQL/MariaDB and SQLite, and every value
-is bound. Only `queryweave-sql` depends on sqlx, so the other layers do not
-get it.
+then builds SQL from the query, into the query builder you use:
+
+- [sqlx](https://docs.rs/sqlx) (`queryweave-sql`'s `sqlx` feature, on by
+  default): the clauses are appended to a sqlx `QueryBuilder`.
+- [sea-query](https://docs.rs/sea-query), and so
+  [SeaORM](https://docs.rs/sea-orm) (the `sea-query` feature): the clauses are
+  added to a `SelectStatement`, `UpdateStatement` or `DeleteStatement`, which
+  sea-query renders. See [With SeaORM](#with-seaorm).
+
+Either way the SQL works on Postgres, MySQL/MariaDB and SQLite, and every
+value is bound. Only `queryweave-sql` depends on the query builder, so the
+other layers do not get it.
 
 ### `Columns` on the entity
 
@@ -223,6 +230,11 @@ pub struct User {
 - A column storing a domain field of another name says so with
   `#[domain_field(name)]`; that name must exist on the model.
 - `#[sqlx(skip)]` and `#[sqlx(flatten)]` fields are not columns.
+- On a SeaORM entity, `#[sea_orm(column_name = "...")]` renames a column and
+  `#[sea_orm(ignore)]` fields are not columns, the same way. A field named by
+  both libraries must get the same name from each.
+- `rename_all`, from either library, is rejected: name each renamed column on
+  its field.
 
 This is the only place a domain field name becomes a column name. Every SQL
 helper checks, when your code is built, that each domain field it writes has a
@@ -264,6 +276,43 @@ conditions of your own (access rules, soft deletion).
 The generated SQL is standard and portable across Postgres, MySQL/MariaDB
 and SQLite. Every value is bound as a parameter, never written into the SQL,
 and `LIKE` patterns escape the user's `%` and `_`.
+
+### With SeaORM
+
+Turn on `queryweave-sql`'s `sea-query` feature, derive `Columns` on the
+entity's `Model` next to SeaORM's own derive, and hand the generated methods
+the statement inside a SeaORM query, through `QueryTrait::query`:
+
+```rust,ignore
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Columns)]
+#[sea_orm(table_name = "users")]
+#[columns(model = UserModel)]
+pub struct Model {
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    #[domain_field(age)]
+    pub age_years: i32,
+    #[sea_orm(column_name = "is_active")]
+    pub active: bool,
+}
+
+// A page of users: the filters, sorting and page go into the select.
+let mut select = user::Entity::find();
+let guard: Option<fn(&mut SelectStatement, &UsersQueryModelWrapper)> = None;
+UsersQueryModelWrapper(filters).append_to_query(select.query(), guard);
+let users = select.all(&db).await?;
+
+// A partial update: the changed values go into the update.
+let mut update = user::Entity::update_many().filter(user::Column::Id.eq(id));
+user::Model::push_assignments(update.query(), patched.changed_values(&changed));
+update.exec(&db).await?;
+```
+
+The guard receives the `SelectStatement`, so it adds its conditions with
+`and_where`. sea-query quotes the column names it renders, so on Postgres they
+match the table's exactly, case included. `queryweave-sql` depends on
+sea-query alone, not SeaORM, so it works with plain sea-query statements just
+the same.
 
 ## 4. Partial updates: `MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
 

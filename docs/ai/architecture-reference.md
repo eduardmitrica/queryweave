@@ -9,17 +9,17 @@
 
 ## Crates
 
-| Crate                           | Kind       | Holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `queryweave`                    | lib        | Core runtime, named by code generated for root models: `Filterable`, role traits (`QueryOf`, `FilterOptionsOf`, `SortFieldOf`, `SortDetailsOf`), `IntoRootQuery`, `SortDirectionModel`, `ChangeSet`, `ChangedFields`, `MergePatchNullableFields`, `NullableFields`, `RawValue` + `Ordered` / `Text` / `Boolean`, `FilterOperator`, `Value` / `IntoValue` / `FilterCondition` / `SortKey` / `FieldValue`, `PersistedFields`, `ModelData` / `Conditions` / `SortKeys` / `FieldValues`, `__private::model_data` (generated code only). No sqlx, no serializer, no SQL text.                                              |
-| `queryweave-api`                | lib        | API runtime: `PageDto<T>`, `SortDirectionDto` (converts both ways with `SortDirectionModel`), `features::{Serde, Utoipa, Schemars}`. Features `serde`, `utoipa`, `schemars`, none by default. Re-exports the core. Never sqlx.                                                                                                                                                                                                                                                                                                                                                                                        |
-| `queryweave-sql`                | lib        | SQL runtime: `Columns` (+ `push_conditions`, `push_order_by`, `push_assignments`), the target traits (`ConditionsTarget`, `OrderByTarget`, `AssignmentsTarget`, `PageTarget`; sqlx's `QueryBuilder` implements them), `AppendToQuery`, `AppendToQueryWithSeparator`, `assert_columns!`, `Junction`, `push_page`, `sql_operator`, `sql_direction`, `sql_junction`, `like_pattern` / `escape_like` / `LIKE_ESCAPE` / `page_offset` (for other targets), `BindValues` (feature `sqlx`), `__private` (generated code only). Features `sqlx` (backend, default), `merge-patch`. Re-exports the core. No driver dependency. |
-| `queryweave-codegen`            | lib        | Code generation: `filters::<C>`, `merge_patch::<C>`, `merge_patch_nullable_fields::<C>`, `validate_non_nullable::<C>`, `raw_value::<C>`, `columns::<C>`, `append_to_query::<C>`, `append_to_query_with_separator::<C>` (`TokenStream -> TokenStream`). Public modules: `conventions`, `integrations`, `errors`, `names`. Private: `steps`, `attributes`, `checks`, `utils`, the step modules.                                                                                                                                                                                                                         |
-| `queryweave-derive`             | proc-macro | Every derive under `DefaultConventions`, one line each. Exports only derives. Holds behavior tests and trybuild UI suites.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `queryweave-custom-conventions` | proc-macro | Test fixture: other conventions and an integration (`wire`). `publish = false`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Crate                           | Kind       | Holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryweave`                    | lib        | Core runtime, named by code generated for root models: `Filterable`, role traits (`QueryOf`, `FilterOptionsOf`, `SortFieldOf`, `SortDetailsOf`), `IntoRootQuery`, `SortDirectionModel`, `ChangeSet`, `ChangedFields`, `MergePatchNullableFields`, `NullableFields`, `RawValue` + `Ordered` / `Text` / `Boolean`, `FilterOperator`, `Value` / `IntoValue` / `FilterCondition` / `SortKey` / `FieldValue`, `PersistedFields`, `ModelData` / `Conditions` / `SortKeys` / `FieldValues`, `__private::model_data` (generated code only). No sqlx, no serializer, no SQL text.                                                                                               |
+| `queryweave-api`                | lib        | API runtime: `PageDto<T>`, `SortDirectionDto` (converts both ways with `SortDirectionModel`), `features::{Serde, Utoipa, Schemars}`. Features `serde`, `utoipa`, `schemars`, none by default. Re-exports the core. Never sqlx.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `queryweave-sql`                | lib        | SQL runtime: `Columns` (+ `push_conditions`, `push_order_by`, `push_assignments`), the target traits (`ConditionsTarget`, `OrderByTarget`, `AssignmentsTarget`, `PageTarget`; sqlx's `QueryBuilder` and sea-query's statements implement them), `AppendToQuery`, `AppendToQueryWithSeparator`, `assert_columns!`, `Junction`, `push_page`, `sql_operator`, `sql_direction`, `sql_junction`, `like_pattern` / `escape_like` / `LIKE_ESCAPE` / `page_offset` (for other targets), `BindValues` (feature `sqlx`), `__private` (generated code only). Features `sqlx` (backend, default), `sea-query` (backend), `merge-patch`. Re-exports the core. No driver dependency. |
+| `queryweave-codegen`            | lib        | Code generation: `filters::<C>`, `merge_patch::<C>`, `merge_patch_nullable_fields::<C>`, `validate_non_nullable::<C>`, `raw_value::<C>`, `columns::<C>`, `append_to_query::<C>`, `append_to_query_with_separator::<C>` (`TokenStream -> TokenStream`). Public modules: `conventions`, `integrations`, `errors`, `names`. Private: `steps`, `attributes`, `checks`, `utils`, the step modules.                                                                                                                                                                                                                                                                          |
+| `queryweave-derive`             | proc-macro | Every derive under `DefaultConventions`, one line each. Exports only derives. Holds behavior tests and trybuild UI suites.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `queryweave-custom-conventions` | proc-macro | Test fixture: other conventions and an integration (`wire`). `publish = false`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 Versioning: `0.1.0`, all five published crates in lockstep. License `MIT OR Apache-2.0`.
-MSRV 1.88. A dependency between queryweave crates has `version` next to `path`.
+MSRV 1.88 (every feature; SeaORM, a dev-dependency, needs 1.94). A dependency between queryweave crates has `version` next to `path`.
 
 ## Invariants
 
@@ -69,16 +69,20 @@ Filterable>::Query`: coherence rejects it, overlapping `impl<T> From<T> for T`).
 ### Persistence
 
 - Domain field names become column names only through an entity deriving
-  `Columns` (`#[domain_field(name)]` where they differ).
+  `Columns` (`#[domain_field(name)]` where they differ; `#[sqlx(rename)]` /
+  `#[sea_orm(column_name)]`, which must agree; `#[sqlx(skip / flatten)]` /
+  `#[sea_orm(ignore)]` are no columns; either's `rename_all` is rejected).
 - SQL for a model's data is written only through the entity's `push_*`
   methods, taking `ModelData<Model, _>` (data cannot be paired with another
   model); they check column coverage at build time (post-monomorphization),
   then call the query's unchecked `write_*` (its target trait).
   The wrapper derives also emit `assert_columns!` (reported by `cargo check`).
 - SQL is database-agnostic: generic over the query's target traits (sqlx's
-  impls over `DB: BindValues`), standard SQL, every
+  impls over `DB: BindValues`; sea-query's build expressions, rendered and
+  quoted per database by sea-query), standard SQL, every
   value bound, `LIKE ... ESCAPE '!'`. A new SQL helper gets a rendering test per
-  database and runs in `queryweave-sql/tests/sqlite.rs`.
+  database and runs in `queryweave-sql/tests/sqlite.rs` (sea-query:
+  `tests/sea_query_sqlite.rs`).
 
 ### Field types
 
@@ -131,9 +135,10 @@ flag_option}`; every link is an option of the derive's own attribute
 
 ### Features and versions
 
-- `queryweave-sql`'s `sqlx` (default) is its sqlx backend (`backend/sqlx.rs`):
-  only target-trait impls, whose `on_unimplemented` names the feature; checked
-  with and without it (`check.sh`, `tests/ui/features/sqlx.rs`).
+- `queryweave-sql`'s `sqlx` (default) and `sea-query` are its backends
+  (`backend/sqlx.rs`, `backend/sea_query.rs`): only target-trait impls, whose
+  `on_unimplemented` names the features; checked with each, both and neither
+  (`check.sh`, `tests/ui/features/`, failing cases only without a backend).
 - `merge-patch` (default) in every queryweave crate gates the merge patch
   derives and runtime; `Columns` emits `push_assignments` only with
   `queryweave-codegen`'s feature. Filters-only builds are checked by
@@ -172,7 +177,9 @@ sort_details | page = Name)]` renames one generated type of a struct
   all features and none).
 - `queryweave-api` alone under each feature combination (unified away in a
   workspace build).
-- Databases: `queryweave-sql/tests/sqlite.rs` (in memory, in `fast`);
+- Databases: `queryweave-sql/tests/sqlite.rs` and `tests/sea_query_sqlite.rs`
+  (in memory, in `fast`); `queryweave-derive/tests/sea_orm.rs` (real SeaORM
+  entities);
   `tests/postgres.rs` and `tests/mysql.rs` (MySQL and MariaDB) start
   testcontainers, so need Docker and are left out of the `fast` profile.
 - `queryweave/` is a Cargo workspace of its own. `scripts/check.sh fast`

@@ -45,6 +45,8 @@ redundant_field_names = "allow"
 chrono = "0.4.45"
 # Only the query builder and the binding traits: the user's driver does the rest.
 sqlx = { version = "0.8.6", default-features = false }
+# Only the statements and expressions: no SQL backend (each test asks for its own).
+sea-query = { version = "1.0.2", default-features = false }
 serde = { version = "1.0.229", features = ["derive"] }
 utoipa = "5.5.0"
 schemars = "1.2.2"
@@ -65,6 +67,8 @@ pretty_assertions = "1.4.1"
 prettyplease = "0.3.0"
 rstest = "0.26.1"
 serde_json = "1.0.151"
+sea-query-sqlx = { version = "0.8.1", default-features = false }
+sea-orm = { version = "2.0.4", default-features = false }
 testcontainers = "0.26.3"
 tokio = { version = "1.53.2", features = ["macros", "rt-multi-thread"] }
 trybuild = "1.0.121"

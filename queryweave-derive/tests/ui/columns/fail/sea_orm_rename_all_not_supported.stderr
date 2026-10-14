@@ -1,0 +1,8 @@
+error: #[derive(Columns)] does not support #[sea_orm(rename_all = "...")]
+
+       = help: Name each renamed column with #[sea_orm(column_name = "...")] on its field instead
+
+  --> tests/ui/columns/fail/sea_orm_rename_all_not_supported.rs:12:38
+   |
+12 |     #[sea_orm(table_name = "orders", rename_all = "camelCase")]
+   |                                      ^^^^^^^^^^

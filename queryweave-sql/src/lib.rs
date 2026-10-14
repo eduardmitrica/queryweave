@@ -15,6 +15,11 @@
 //!
 //! - `sqlx` (default): sqlx's `QueryBuilder` is a target, for any database
 //!   whose driver binds the domain's raw values (`BindValues`).
+//! - `sea-query`: sea-query's `SelectStatement` (conditions, `ORDER BY`, page),
+//!   `UpdateStatement` (conditions, assignments) and `DeleteStatement`
+//!   (conditions) are targets. With `sea-orm`, write into a query's
+//!   statement through `QueryTrait::query`:
+//!   `Order::push_conditions(select.query(), …)`.
 //! - `merge-patch` (default): merge-patch writes (`push_assignments`).
 //!
 //! The SQL is portable across Postgres, MySQL/MariaDB and SQLite. What stays

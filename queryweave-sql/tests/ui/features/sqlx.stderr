@@ -5,7 +5,7 @@ error[E0277]: `QueryBuilder<'static, Postgres>` is not a query `queryweave-sql` 
   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not a `ConditionsTarget`
   |
   = help: the trait `ConditionsTarget` is not implemented for `QueryBuilder<'static, Postgres>`
-  = note: sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = { version = "..", features = ["sqlx"] }`
+  = note: enable the `queryweave-sql` feature of your query builder: `sqlx` (on by default) for sqlx's `QueryBuilder`, `sea-query` for sea-query's (and SeaORM's) statements
 note: required by a bound in `requires_target`
  --> tests/ui/features/sqlx.rs:3:29
   |

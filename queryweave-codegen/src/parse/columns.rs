@@ -26,71 +26,125 @@ pub struct Parsed<'a> {
     pub columns: Vec<Column>,
 }
 
-/// What `#[sqlx(...)]` says about an entity field.
+/// An ORM attribute naming the columns of an entity: its name, the option
+/// renaming a field's column, and the options marking a field as no column.
+struct OrmAttribute {
+    name: &'static str,
+    rename: &'static str,
+    not_a_column: &'static [&'static str],
+}
+
+/// The ORM attributes `Columns` reads: `sqlx`'s and `sea_orm`'s.
+const ORM_ATTRIBUTES: [OrmAttribute; 2] = [
+    OrmAttribute {
+        name: "sqlx",
+        rename: "rename",
+        not_a_column: &["skip", "flatten"],
+    },
+    OrmAttribute {
+        name: "sea_orm",
+        rename: "column_name",
+        not_a_column: &["ignore"],
+    },
+];
+
+/// What the ORM attributes say about an entity field.
 #[derive(Default)]
-struct SqlxField {
-    /// `#[sqlx(rename = "...")]`: the column name.
-    rename: Option<String>,
-    /// `#[sqlx(skip)]` / `#[sqlx(flatten)]`: not a column of the table.
+struct OrmField {
+    /// `#[sqlx(rename = "...")]` / `#[sea_orm(column_name = "...")]`: the
+    /// column name, as written.
+    rename: Option<syn::LitStr>,
+    /// `#[sqlx(skip)]` / `#[sqlx(flatten)]` / `#[sea_orm(ignore)]`: not a
+    /// column of the table.
     is_not_a_column: bool,
 }
 
-/// Read the `#[sqlx(...)]` attributes of an entity field, consuming any other
-/// `sqlx` options without interpreting them.
-fn sqlx_field(field: &syn::Field) -> syn::Result<SqlxField> {
-    let mut sqlx_field = SqlxField::default();
-
-    for attribute in field
-        .attrs
-        .iter()
-        .filter(|attribute| attribute.path().is_ident("sqlx"))
-    {
-        attribute.parse_nested_meta(|meta| {
-            if meta.path.is_ident("rename") {
-                let column: syn::LitStr = meta.value()?.parse()?;
-                sqlx_field.rename = Some(column.value());
-            } else if meta.path.is_ident("skip") || meta.path.is_ident("flatten") {
-                sqlx_field.is_not_a_column = true;
-            } else if meta.input.peek(syn::Token![=]) {
-                let _: syn::Expr = meta.value()?.parse()?;
-            } else if meta.input.peek(syn::token::Paren) {
-                let content;
-                syn::parenthesized!(content in meta.input);
-                let _: proc_macro2::TokenStream = content.parse()?;
-            }
-
-            Ok(())
-        })?;
+/// Consume the value of an ORM option this derive does not interpret
+/// (`key = value`, `key(...)` or a bare `key`).
+fn skip_option(meta: &syn::meta::ParseNestedMeta<'_>) -> syn::Result<()> {
+    if meta.input.peek(syn::Token![=]) {
+        let _: syn::Expr = meta.value()?.parse()?;
+    } else if meta.input.peek(syn::token::Paren) {
+        let content;
+        syn::parenthesized!(content in meta.input);
+        let _: proc_macro2::TokenStream = content.parse()?;
     }
 
-    Ok(sqlx_field)
+    Ok(())
 }
 
-/// Reject `#[sqlx(rename_all = "...")]` on the entity: it renames every
-/// column in a way this derive does not model, so a mapping taken from the
-/// field names would be silently wrong.
+/// Read the ORM attributes of an entity field, consuming their other options
+/// without interpreting them. Two renames of the field must agree.
+fn orm_field(field: &syn::Field) -> syn::Result<OrmField> {
+    let mut orm_field = OrmField::default();
+
+    for orm in &ORM_ATTRIBUTES {
+        for attribute in field
+            .attrs
+            .iter()
+            .filter(|attribute| attribute.path().is_ident(orm.name))
+        {
+            attribute.parse_nested_meta(|meta| {
+                if meta.path.is_ident(orm.rename) {
+                    let column: syn::LitStr = meta.value()?.parse()?;
+                    if let Some(existing) = &orm_field.rename
+                        && existing.value() != column.value()
+                    {
+                        let message = format!(
+                            "The column is named both `{}` and `{}`",
+                            existing.value(),
+                            column.value()
+                        );
+                        let help = "Give the column a single name";
+                        return Err(syn::Error::new(
+                            column.span(),
+                            crate::errors::message(&message, help),
+                        ));
+                    }
+                    orm_field.rename = Some(column);
+                } else if orm.not_a_column.iter().any(|key| meta.path.is_ident(key)) {
+                    orm_field.is_not_a_column = true;
+                } else {
+                    skip_option(&meta)?;
+                }
+
+                Ok(())
+            })?;
+        }
+    }
+
+    Ok(orm_field)
+}
+
+/// Reject `rename_all` in an ORM attribute of the entity
+/// (`#[sqlx(rename_all = "...")]`, `#[sea_orm(rename_all = "...")]`): it
+/// renames every column in a way this derive does not model, so a mapping
+/// taken from the field names would be silently wrong.
 fn reject_rename_all(attributes: &[syn::Attribute]) -> syn::Result<()> {
-    for attribute in attributes
-        .iter()
-        .filter(|attribute| attribute.path().is_ident("sqlx"))
-    {
-        let mut rename_all = None;
-        attribute.parse_nested_meta(|meta| {
-            if meta.path.is_ident("rename_all") {
-                rename_all = Some(meta.path.clone());
-            }
-            if meta.input.peek(syn::Token![=]) {
-                let _: syn::Expr = meta.value()?.parse()?;
-            }
+    for orm in &ORM_ATTRIBUTES {
+        for attribute in attributes
+            .iter()
+            .filter(|attribute| attribute.path().is_ident(orm.name))
+        {
+            let mut rename_all = None;
+            attribute.parse_nested_meta(|meta| {
+                if meta.path.is_ident("rename_all") {
+                    rename_all = Some(meta.path.clone());
+                }
+                skip_option(&meta)
+            })?;
 
-            Ok(())
-        })?;
-
-        if let Some(path) = rename_all {
-            let message = "#[derive(Columns)] does not support #[sqlx(rename_all = \"...\")]";
-            let help =
-                "Name each renamed column with #[sqlx(rename = \"...\")] on its field instead";
-            return crate::errors::abort_spanned(path, message, help);
+            if let Some(path) = rename_all {
+                let message = format!(
+                    "#[derive(Columns)] does not support #[{}(rename_all = \"...\")]",
+                    orm.name
+                );
+                let help = format!(
+                    "Name each renamed column with #[{}({} = \"...\")] on its field instead",
+                    orm.name, orm.rename
+                );
+                return crate::errors::abort_spanned(path, &message, &help);
+            }
         }
     }
 
@@ -103,17 +157,18 @@ fn reject_rename_all(attributes: &[syn::Attribute]) -> syn::Result<()> {
 /// # Errors
 ///
 /// Returns the errors of an input that is not a struct with named fields, of
-/// `#[sqlx(rename_all)]`, and of malformed field attributes.
+/// `rename_all` in its ORM attributes, and of malformed or disagreeing field
+/// attributes.
 pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
     let syn::Data::Struct(data_struct) = &input.data else {
         let message = "Cannot call #[derive(Columns)] on any other item, other than a struct";
-        let help = "Call #[derive(Columns)] on the sqlx entity struct of a table";
+        let help = "Call #[derive(Columns)] on the entity struct of a table";
         return crate::errors::abort_call_site(message, help);
     };
 
     let syn::Fields::Named(named_fields) = &data_struct.fields else {
         let message = "Cannot call #[derive(Columns)] on a struct that doesn't have named fields";
-        let help = "Call #[derive(Columns)] on the sqlx entity struct of a table";
+        let help = "Call #[derive(Columns)] on the entity struct of a table";
         return crate::errors::abort_spanned(&input.ident, message, help);
     };
 
@@ -127,10 +182,10 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
             continue;
         };
 
-        let Some(sqlx_field) = errors.check(sqlx_field(field)) else {
+        let Some(orm_field) = errors.check(orm_field(field)) else {
             continue;
         };
-        if sqlx_field.is_not_a_column {
+        if orm_field.is_not_a_column {
             continue;
         }
 
@@ -158,7 +213,9 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
 
         columns.push(Column {
             is_mapped: domain_field != *field_ident,
-            name: sqlx_field.rename.unwrap_or_else(|| field_ident.to_string()),
+            name: orm_field
+                .rename
+                .map_or_else(|| field_ident.to_string(), |column| column.value()),
             domain_field,
         });
     }
@@ -244,12 +301,73 @@ mod tests {
         );
     }
 
+    // A SeaORM entity: `#[sea_orm(column_name)]` renames the column, an
+    // ignored field is no column, and its other options are left alone.
+    #[test]
+    fn a_sea_orm_entity_names_its_columns() {
+        let columns = columns(quote::quote! {
+            #[derive(DeriveEntityModel, Columns)]
+            #[sea_orm(table_name = "orders")]
+            #[columns(model = OrderModel)]
+            struct Model {
+                #[sea_orm(primary_key, auto_increment = false)]
+                id: i32,
+                #[sea_orm(column_name = "order_number", column_type = "Text", unique)]
+                number: String,
+                #[domain_field(delivery_date)]
+                #[sea_orm(column_name = "delivered_on")]
+                delivered_at: DateTime<Utc>,
+                #[sea_orm(ignore)]
+                cached: bool,
+            }
+        });
+
+        pretty_assertions::assert_eq!(
+            columns,
+            vec![
+                (String::from("id"), false, String::from("id")),
+                (String::from("number"), false, String::from("order_number")),
+                (
+                    String::from("delivery_date"),
+                    true,
+                    String::from("delivered_on")
+                ),
+            ]
+        );
+    }
+
+    // sqlx and SeaORM may both name a column, if they agree.
+    #[test]
+    fn agreeing_renames_name_the_column() {
+        let columns = columns(quote::quote! {
+            struct Order {
+                #[sqlx(rename = "order_number")]
+                #[sea_orm(column_name = "order_number")]
+                number: String,
+            }
+        });
+
+        pretty_assertions::assert_eq!(
+            columns,
+            vec![(String::from("number"), false, String::from("order_number"))]
+        );
+    }
+
     #[rstest]
     // Not a struct with named fields.
     #[case(quote::quote! { enum Order { A } })]
     #[case(quote::quote! { struct Order(i32); })]
     // A column naming model this derive does not follow.
     #[case(quote::quote! { #[sqlx(rename_all = "camelCase")] struct Order { id: i32 } })]
+    #[case(quote::quote! { #[sea_orm(rename_all = "camelCase")] struct Order { id: i32 } })]
+    // Two names for one column.
+    #[case(quote::quote! {
+        struct Order {
+            #[sqlx(rename = "number")]
+            #[sea_orm(column_name = "order_number")]
+            number: String,
+        }
+    })]
     // Two columns storing the same domain field.
     #[case(quote::quote! { struct Order { id: i32, #[domain_field(id)] order_id: i32 } })]
     // A malformed `#[domain_field(...)]`.

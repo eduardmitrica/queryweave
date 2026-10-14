@@ -1,0 +1,8 @@
+error: The column is named both `number` and `order_number`
+
+       = help: Give the column a single name
+
+  --> tests/ui/columns/fail/column_named_twice.rs:18:33
+   |
+18 |         #[sea_orm(column_name = "order_number")]
+   |                                 ^^^^^^^^^^^^^^

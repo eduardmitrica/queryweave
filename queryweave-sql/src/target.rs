@@ -6,7 +6,8 @@
 //! clause it can take. The derives' generated code is generic over these
 //! traits, so it names no query builder, and a target decides how the clause
 //! is written (sqlx's `QueryBuilder`, with the `sqlx` feature, appends SQL
-//! text and binds the values; the public helpers of this crate, such as
+//! text and binds the values; sea-query's statements, with the `sea-query`
+//! feature, add expressions; the public helpers of this crate, such as
 //! `like_pattern` and `page_offset`, write it for a target of your own).
 //!
 //! The `write_*` methods do not check the columns themselves: call them
@@ -31,7 +32,7 @@ pub enum Junction {
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a query `queryweave-sql` can write conditions into",
     label = "not a `ConditionsTarget`",
-    note = "sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = {{ version = \"..\", features = [\"sqlx\"] }}`"
+    note = "enable the `queryweave-sql` feature of your query builder: `sqlx` (on by default) for sqlx's `QueryBuilder`, `sea-query` for sea-query's (and SeaORM's) statements"
 )]
 pub trait ConditionsTarget {
     /// Start a `WHERE` clause, before its conditions.
@@ -54,7 +55,7 @@ pub trait ConditionsTarget {
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a query `queryweave-sql` can write an `ORDER BY` into",
     label = "not an `OrderByTarget`",
-    note = "sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = {{ version = \"..\", features = [\"sqlx\"] }}`"
+    note = "enable the `queryweave-sql` feature of your query builder: `sqlx` (on by default) for sqlx's `QueryBuilder`, `sea-query` for sea-query's (and SeaORM's) statements"
 )]
 pub trait OrderByTarget {
     /// Write an `ORDER BY column direction, …` clause for the sort keys of the
@@ -67,7 +68,7 @@ pub trait OrderByTarget {
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a query `queryweave-sql` can write a page into",
     label = "not a `PageTarget`",
-    note = "sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = {{ version = \"..\", features = [\"sqlx\"] }}`"
+    note = "enable the `queryweave-sql` feature of your query builder: `sqlx` (on by default) for sqlx's `QueryBuilder`, `sea-query` for sea-query's (and SeaORM's) statements"
 )]
 pub trait PageTarget {
     /// Write a `LIMIT page_size OFFSET page * page_size` clause (`page` 0
@@ -82,7 +83,7 @@ pub trait PageTarget {
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a query `queryweave-sql` can write assignments into",
     label = "not an `AssignmentsTarget`",
-    note = "sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = {{ version = \"..\", features = [\"sqlx\"] }}`"
+    note = "enable the `queryweave-sql` feature of your query builder: `sqlx` (on by default) for sqlx's `QueryBuilder`, `sea-query` for sea-query's (and SeaORM's) statements"
 )]
 pub trait AssignmentsTarget {
     /// What writing the assignments returns, to add more of them (for sqlx,

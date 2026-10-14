@@ -22,6 +22,8 @@ queryweave = { path = "../queryweave", version = "0.1.0", default-features = fal
 # binds the domain's raw values (`BindValues`).
 chrono = { workspace = true, optional = true }
 sqlx = { workspace = true, optional = true }
+# The `sea-query` backend (SeaORM's query builder).
+sea-query = { workspace = true, optional = true, features = ["with-chrono"] }
 mutants.workspace = true
 
 [features]
@@ -32,8 +34,13 @@ default = ["merge-patch", "sqlx"]
 merge-patch = ["queryweave/merge-patch"]
 # sqlx's `QueryBuilder` as a query the SQL is written into.
 sqlx = ["dep:sqlx", "dep:chrono"]
+# sea-query's statements (SeaORM's, through `QueryTrait::query`) as queries the
+# SQL is written into.
+sea-query = ["dep:sea-query"]
 
 [dev-dependencies]
+# The SQLite tests' date-times, whichever backend runs them.
+chrono.workspace = true
 rstest.workspace = true
 pretty_assertions.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
@@ -44,6 +51,10 @@ sqlx = { workspace = true, features = ["runtime-tokio", "postgres", "mysql", "sq
 testcontainers.workspace = true
 # The feature checks' UI cases (`tests/ui/features`).
 trybuild.workspace = true
+# The sea-query backend's tests render each database's SQL, and run it on
+# SQLite through sqlx.
+sea-query = { workspace = true, features = ["backend-postgres", "backend-mysql", "backend-sqlite", "with-chrono"] }
+sea-query-sqlx = { workspace = true, features = ["sqlx-sqlite", "with-chrono"] }
 
 # The SQL tests run through sqlx's `QueryBuilder`.
 [[test]]
@@ -57,3 +68,7 @@ required-features = ["sqlx"]
 [[test]]
 name = "mysql"
 required-features = ["sqlx"]
+
+[[test]]
+name = "sea_query_sqlite"
+required-features = ["sea-query"]

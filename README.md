@@ -4,8 +4,9 @@ queryweave generates the code that lets the clients of an application filter,
 sort, page through and partially update its data, from a few attributes on
 your domain model.
 
-The SQL is built on [sqlx](https://docs.rs/sqlx), for Postgres, MySQL/MariaDB
-and SQLite. The query parameters work with the libraries you choose: with
+The SQL is built on [sqlx](https://docs.rs/sqlx) or
+[sea-query](https://docs.rs/sea-query) (and so
+[SeaORM](https://docs.rs/sea-orm)), for Postgres, MySQL/MariaDB and SQLite. The query parameters work with the libraries you choose: with
 serde, they deserialize from a query string read by
 [serde_qs](https://docs.rs/serde_qs).
 
@@ -132,7 +133,7 @@ per layer, which holds the types the generated code uses:
 | `queryweave-derive`  | every layer                 | The derive macros.                                                                                              |
 | `queryweave`         | the domain                  | The core: query, sort and patch data. No database or serializer dependency, so the domain stays free of both.   |
 | `queryweave-api`     | the API layer               | Pages and sort directions for API types, with optional `serde`, `utoipa` and `schemars` support.                |
-| `queryweave-sql`     | the persistence layer       | The SQL, for any [sqlx](https://docs.rs/sqlx) database (Postgres, MySQL/MariaDB, SQLite). No driver dependency. |
+| `queryweave-sql`     | the persistence layer       | The SQL, written into sqlx's `QueryBuilder` (feature `sqlx`, default) or sea-query's / SeaORM's statements (feature `sea-query`), for Postgres, MySQL/MariaDB, SQLite. No driver dependency. |
 | `queryweave-codegen` | a proc-macro crate of yours | The code generation itself, for when you want your own naming rules or integrations (see below).                |
 
 `queryweave-api` and `queryweave-sql` re-export the core, so each layer needs
@@ -219,7 +220,9 @@ Its version is `0.1.0`: the API may still change before `1.0`.
 
 ## Minimum supported Rust version
 
-Rust 1.88.
+Rust 1.88, with every feature. SeaORM 2.0 itself needs Rust 1.94, so a project
+writing into SeaORM's queries (through the `sea-query` feature) needs that
+version for SeaORM's sake.
 
 ## License
 
