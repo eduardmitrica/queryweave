@@ -24,6 +24,8 @@ chrono = { workspace = true, optional = true }
 sqlx = { workspace = true, optional = true }
 # The `sea-query` backend (SeaORM's query builder).
 sea-query = { workspace = true, optional = true, features = ["with-chrono"] }
+# The `diesel` backend.
+diesel = { workspace = true, optional = true, features = ["chrono"] }
 mutants.workspace = true
 
 [features]
@@ -37,6 +39,15 @@ sqlx = ["dep:sqlx", "dep:chrono"]
 # sea-query's statements (SeaORM's, through `QueryTrait::query`) as queries the
 # SQL is written into.
 sea-query = ["dep:sea-query"]
+# Diesel's typed DSL (`queryweave_sql::diesel`): conditions, orderings, a page
+# and assignments for an entity's columns, for the SQL types every backend has.
+diesel = ["dep:diesel", "dep:chrono"]
+# Each backend's own date-time types, through Diesel's feature of the same
+# backend (which a Diesel application on it already enables): `Timestamptz`,
+# `Datetime`, `TimestamptzSqlite`.
+diesel-postgres = ["diesel", "diesel/postgres_backend"]
+diesel-mysql = ["diesel", "diesel/mysql_backend"]
+diesel-sqlite = ["diesel", "diesel/sqlite"]
 
 [dev-dependencies]
 # The SQLite tests' date-times, whichever backend runs them.
@@ -55,6 +66,10 @@ trybuild.workspace = true
 # SQLite through sqlx.
 sea-query = { workspace = true, features = ["backend-postgres", "backend-mysql", "backend-sqlite", "with-chrono"] }
 sea-query-sqlx = { workspace = true, features = ["sqlx-sqlite", "with-chrono"] }
+# The diesel backend's tests render each database's SQL, and run it on SQLite
+# (bundled, so no system library is needed).
+diesel = { workspace = true, features = ["sqlite", "postgres_backend", "mysql_backend", "chrono"] }
+libsqlite3-sys.workspace = true
 
 # The SQL tests run through sqlx's `QueryBuilder`.
 [[test]]
@@ -72,3 +87,11 @@ required-features = ["sqlx"]
 [[test]]
 name = "sea_query_sqlite"
 required-features = ["sea-query"]
+
+[[test]]
+name = "diesel_sqlite"
+required-features = ["diesel-sqlite"]
+
+# docs.rs documents every feature: the integrations and backends are opt-in.
+[package.metadata.docs.rs]
+all-features = true

@@ -38,8 +38,10 @@ cargo nextest run --workspace --profile fast
 step "doc tests"
 cargo test --workspace --doc
 
+# Every feature, as docs.rs builds them: the integrations and backends are
+# opt-in, so a default build would leave their items unchecked.
 step "documentation"
-RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
 
 # The workspace enables every feature of `queryweave-api` (cargo unifies them),
 # so check it alone under each feature combination: lints, tests, and the
@@ -51,9 +53,12 @@ for features in "" serde utoipa schemars validator serde,utoipa,schemars,validat
 done
 
 # Likewise `queryweave-sql` alone, with each of its backends (`sqlx`,
-# `sea-query`), both and neither: lints, tests (but the database ones) and the
-# feature checks' UI cases.
-for features in merge-patch merge-patch,sqlx merge-patch,sea-query merge-patch,sqlx,sea-query; do
+# `sea-query`, `diesel` with and without its backends' date-time types), all
+# and none: lints, tests (but the database ones) and the feature checks' UI
+# cases.
+for features in merge-patch merge-patch,sqlx merge-patch,sea-query merge-patch,diesel \
+  merge-patch,diesel-postgres,diesel-mysql,diesel-sqlite \
+  merge-patch,sqlx,sea-query,diesel-postgres,diesel-mysql,diesel-sqlite; do
   step "queryweave-sql with features [$features]"
   cargo clippy -p queryweave-sql --all-targets --no-default-features --features "$features" -- -D warnings
   cargo nextest run -p queryweave-sql --no-default-features --features "$features" --ignore-default-filter \
@@ -64,7 +69,8 @@ done
 step "filters only (no merge-patch)"
 cargo clippy -p queryweave -p queryweave-api -p queryweave-sql -p queryweave-codegen -p queryweave-derive \
   --lib --no-default-features -- -D warnings
-cargo clippy -p queryweave-sql --lib --no-default-features --features sqlx,sea-query -- -D warnings
+cargo clippy -p queryweave-sql --lib --no-default-features \
+  --features sqlx,sea-query,diesel-postgres,diesel-mysql,diesel-sqlite -- -D warnings
 
 if [ "$mode" = ci ] || [ "$mode" = all ]; then
   step "database tests (Docker)"

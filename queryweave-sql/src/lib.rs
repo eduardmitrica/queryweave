@@ -20,6 +20,10 @@
 //!   (conditions) are targets. With `sea-orm`, write into a query's
 //!   statement through `QueryTrait::query`:
 //!   `Order::push_conditions(select.query(), …)`.
+//! - `diesel`: the `diesel` module, the typed conditions, orderings,
+//!   page and assignments of an entity's Diesel columns, for the SQL types
+//!   every backend has; `diesel-postgres`, `diesel-mysql` and `diesel-sqlite`
+//!   add each backend's own date-time types.
 //! - `merge-patch` (default): merge-patch writes (`push_assignments`).
 //!
 //! The SQL is portable across Postgres, MySQL/MariaDB and SQLite. What stays
@@ -37,6 +41,8 @@ pub use queryweave::*;
 
 #[cfg(feature = "sqlx")]
 pub use backend::BindValues;
+#[cfg(feature = "diesel")]
+pub use backend::diesel;
 pub use columns::{
     Columns, Message, column_for, first_field_without_column, missing_column_message,
 };

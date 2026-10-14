@@ -39,3 +39,7 @@ serde = ["dep:serde"]
 schemars = ["dep:schemars"]
 # validator's `range` rule on `Patch<T>` (it checks a value, when given).
 validator = ["dep:validator"]
+
+# docs.rs documents every feature: the integrations and backends are opt-in.
+[package.metadata.docs.rs]
+all-features = true

@@ -162,6 +162,25 @@ features never changes generated code. The target traits name the features in
 their `diagnostic::on_unimplemented` message, so a disabled backend is
 reported as such rather than as a missing trait.
 
+Diesel is the third backend, and the odd one out. Its columns are types (one
+per column, from `table!`) and its builders are consumed by value, so no
+string can name a column and no `&mut` target trait fits. Diesel's own answer
+to dynamic filters is a `match` from the name to the typed column, boxed
+expressions (`BoxableExpression`) and boxed queries (`into_boxed`); for partial
+updates, a changeset of `Option`s, `None` for the unchanged columns. The
+`queryweave_sql::diesel` module (feature `diesel`) provides the typed half:
+`condition`, `join`, `ordering`, `page` and `assignment` take a typed column
+and an item of the model's data, and the `match` comes from the code generated
+for the entity. The item's `Value` converts to the column's Rust type through
+`ValueSqlType`, implemented per Diesel SQL type; the column's SQL type picks
+the implementation (`Comparison`, `ColumnValue`), so the generated code is the
+same call for every column and never classifies a type. A value that does not
+fit its column (the domain and the schema disagree on the type, or a `NULL`
+goes to a `NOT NULL` column) is a `ValueMismatch` error. Each backend's own
+date-time types come with `diesel-postgres`, `diesel-mysql` and
+`diesel-sqlite`, which turn on Diesel's feature of the same backend, as
+Diesel's ecosystem crates do.
+
 `Columns` reads the column names from the ORM attributes of either library:
 `#[sqlx(rename)]` or `#[sea_orm(column_name)]` (which must agree when both
 are given), and leaves out `#[sqlx(skip)]`, `#[sqlx(flatten)]` and
@@ -344,8 +363,9 @@ change.
   combination, since a workspace build unifies them.
 - `queryweave-sql/tests/sqlite.rs` runs the SQL against SQLite, in memory,
   and `tests/sea_query_sqlite.rs` the sea-query backend's, through
-  `sea-query-sqlx`. `queryweave-derive/tests/sea_orm.rs` writes into real
-  SeaORM entities' queries.
+  `sea-query-sqlx`, and `tests/diesel_sqlite.rs` the Diesel backend's.
+  `queryweave-derive/tests/sea_orm.rs` writes into real SeaORM entities'
+  queries.
   `tests/postgres.rs` and `tests/mysql.rs` (MySQL and MariaDB) run it against
   real servers, which they start in containers, so they need Docker; the
   `fast` nextest profile leaves them out.

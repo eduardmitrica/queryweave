@@ -44,3 +44,7 @@ schemars = ["dep:schemars", "queryweave/schemars"]
 # validator's `range` rule on the core's `Patch`, for an API's merge patch
 # types.
 validator = ["queryweave/validator"]
+
+# docs.rs documents every feature: the integrations and backends are opt-in.
+[package.metadata.docs.rs]
+all-features = true

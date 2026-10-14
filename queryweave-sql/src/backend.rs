@@ -2,6 +2,8 @@
 //! implementing the target traits (`crate::target`) for it, each behind the
 //! Cargo feature of the same name.
 
+#[cfg(feature = "diesel")]
+pub mod diesel;
 #[cfg(feature = "sea-query")]
 mod sea_query;
 #[cfg(feature = "sqlx")]
