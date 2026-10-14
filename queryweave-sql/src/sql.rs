@@ -7,7 +7,7 @@
 //! interpolated. The targets (`backend`) write it with these helpers, which
 //! are public for a target of your own.
 
-use crate::PageTarget;
+use crate::{Junction, PageTarget};
 use queryweave::{FilterOperator, SortDirectionModel};
 
 /// The character escaping the `LIKE` metacharacters in a bound pattern
@@ -26,6 +26,15 @@ pub const fn sql_operator(operator: FilterOperator) -> &'static str {
         FilterOperator::Equal => "=",
         FilterOperator::GreaterThan => ">",
         FilterOperator::StartsWith | FilterOperator::Contains | FilterOperator::EndsWith => "LIKE",
+    }
+}
+
+/// The SQL keyword joining conditions.
+#[must_use]
+pub const fn sql_junction(junction: Junction) -> &'static str {
+    match junction {
+        Junction::And => "AND",
+        Junction::Or => "OR",
     }
 }
 

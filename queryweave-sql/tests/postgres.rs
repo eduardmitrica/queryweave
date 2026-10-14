@@ -97,7 +97,7 @@ async fn count_orders_where(pool: &PgPool, condition: FilterCondition) -> i64 {
     Orders::push_conditions(
         &mut query_builder,
         queryweave::__private::model_data::<Amount, _>(vec![condition]),
-        "AND",
+        queryweave_sql::Junction::And,
     );
 
     query_builder

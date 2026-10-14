@@ -130,7 +130,7 @@ async fn ids_where(
         Coupons::push_conditions(
             &mut query_builder,
             queryweave::__private::model_data::<Coupon, _>(conditions),
-            "AND",
+            queryweave_sql::Junction::And,
         );
     }
     Coupons::push_order_by(

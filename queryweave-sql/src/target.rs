@@ -18,6 +18,15 @@ use crate::Columns;
 use queryweave::FieldValues;
 use queryweave::{Conditions, SortKeys};
 
+/// How conditions are joined: every one must hold (`AND`), or any (`OR`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Junction {
+    /// Every condition must hold: `… AND …`.
+    And,
+    /// Any condition may hold: `… OR …`.
+    Or,
+}
+
 /// A query that filter conditions can be written into: a `WHERE` clause.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a query `queryweave-sql` can write conditions into",
@@ -28,8 +37,8 @@ pub trait ConditionsTarget {
     /// Start a `WHERE` clause, before its conditions.
     fn write_where(&mut self);
 
-    /// Write the conditions of the model `M`, joined by `separator` (e.g.
-    /// `AND`), each comparing the column `C` stores its domain field in.
+    /// Write the conditions of the model `M`, joined by `junction`, each
+    /// comparing the column `C` stores its domain field in.
     ///
     /// Values are bound with their own SQL type; the `LIKE` operators bind an
     /// escaped pattern (`… LIKE ? ESCAPE '!'`), so user input matches
@@ -37,7 +46,7 @@ pub trait ConditionsTarget {
     fn write_conditions<C: Columns + ?Sized, M>(
         &mut self,
         conditions: Conditions<M>,
-        separator: &str,
+        junction: Junction,
     );
 }
 

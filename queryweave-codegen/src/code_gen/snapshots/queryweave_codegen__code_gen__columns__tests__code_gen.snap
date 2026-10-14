@@ -12,14 +12,14 @@ impl ::queryweave_sql::Columns for Order {
 }
 impl Order {
     /// Push the conditions of the model `M` (a generated filter-options
-    /// model's `conditions()`) to a query, joined by `separator`, each
+    /// model's `conditions()`) to a query, joined by `junction`, each
     /// against the column this entity stores its domain field in.
     ///
     /// See the `Columns` trait's `push_conditions`.
     pub fn push_conditions<Q, M>(
         query: &mut Q,
         conditions: ::queryweave_sql::Conditions<M>,
-        separator: &str,
+        junction: ::queryweave_sql::Junction,
     )
     where
         Q: ::queryweave_sql::ConditionsTarget,
@@ -29,7 +29,7 @@ impl Order {
         ::queryweave_sql::ConditionsTarget::write_conditions::<
             Self,
             M,
-        >(query, conditions, separator);
+        >(query, conditions, junction);
     }
     /// Push an `ORDER BY` clause for the sort keys of the model `M` (a
     /// generated query model's `sort_keys()`), each by the column this

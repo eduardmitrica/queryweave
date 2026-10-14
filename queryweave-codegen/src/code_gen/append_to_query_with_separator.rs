@@ -15,10 +15,10 @@ pub fn code_gen(
 
     quote! {
         impl #runtime::AppendToQueryWithSeparator for #name {
-            fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, separator: &str) {
+            fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
                 // The domain model describes its set filters as data; turning
                 // them into SQL, against the entity's columns, happens here.
-                <#columns as #runtime::Columns>::push_conditions(query, self.0.conditions(), separator);
+                <#columns as #runtime::Columns>::push_conditions(query, self.0.conditions(), junction);
             }
         }
 
@@ -26,11 +26,11 @@ pub fn code_gen(
         // `queryweave_sql::AppendToQueryWithSeparator`.
         impl #name {
             /// Append the set filters to the query as conditions joined by
-            /// `separator` (e.g. `AND`).
+            /// `junction`.
             ///
             /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
-            pub fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, separator: &str) {
-                <Self as #runtime::AppendToQueryWithSeparator>::append_to_query(self, query, separator);
+            pub fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
+                <Self as #runtime::AppendToQueryWithSeparator>::append_to_query(self, query, junction);
             }
         }
 

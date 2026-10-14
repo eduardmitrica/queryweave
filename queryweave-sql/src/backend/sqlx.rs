@@ -11,8 +11,10 @@ pub use bind::BindValues;
 
 #[cfg(feature = "merge-patch")]
 use crate::AssignmentsTarget;
-use crate::sql::{LIKE_ESCAPE, like_pattern, page_offset, sql_direction, sql_operator};
-use crate::{Columns, ConditionsTarget, OrderByTarget, PageTarget};
+use crate::sql::{
+    LIKE_ESCAPE, like_pattern, page_offset, sql_direction, sql_junction, sql_operator,
+};
+use crate::{Columns, ConditionsTarget, Junction, OrderByTarget, PageTarget};
 use queryweave::{Conditions, FilterCondition, SortKey, SortKeys, Value};
 #[cfg(feature = "merge-patch")]
 use queryweave::{FieldValue, FieldValues};
@@ -77,11 +79,11 @@ impl<DB: BindValues> ConditionsTarget for QueryBuilder<'_, DB> {
     fn write_conditions<C: Columns + ?Sized, M>(
         &mut self,
         conditions: Conditions<M>,
-        separator: &str,
+        junction: Junction,
     ) {
         for (index, condition) in conditions.into_iter().enumerate() {
             if index > 0 {
-                self.push(format!("{separator} "));
+                self.push(format!("{} ", sql_junction(junction)));
             }
             push_condition::<C, DB>(self, condition);
         }
@@ -143,7 +145,7 @@ impl<DB: BindValues> PageTarget for QueryBuilder<'_, DB> {
 #[cfg(test)]
 mod tests {
     use super::BindValues;
-    use crate::{Columns, push_page};
+    use crate::{Columns, Junction, push_page};
     use queryweave::{
         FieldValue, FilterCondition, FilterOperator, PersistedFields, SortDirectionModel, SortKey,
         Value,
@@ -202,7 +204,7 @@ mod tests {
         Table::push_conditions(
             &mut query_builder,
             queryweave::__private::model_data::<Model, _>(conditions),
-            "AND",
+            Junction::And,
         );
         query_builder.sql().to_string()
     }
@@ -232,7 +234,7 @@ mod tests {
                 condition("number", FilterOperator::Equal),
                 condition("client", FilterOperator::StartsWith),
             ]),
-            "AND",
+            Junction::And,
         );
         Table::push_order_by(
             &mut query_builder,
@@ -347,16 +349,25 @@ mod tests {
         );
     }
 
-    // Conditions are joined by the separator, and only between them.
-    #[test]
-    fn conditions_are_joined_by_the_separator() {
-        assert_eq!(
-            conditions_sql::<Postgres>(vec![
+    // Conditions are joined by the junction's keyword, and only between them.
+    #[rstest]
+    #[case(Junction::And, "number = $1 AND client = $2 ")]
+    #[case(Junction::Or, "number = $1 OR client = $2 ")]
+    fn conditions_are_joined_by_the_junction(
+        #[case] junction: Junction,
+        #[case] expected_sql: &str,
+    ) {
+        let mut query_builder = QueryBuilder::<Postgres>::default();
+        Table::push_conditions(
+            &mut query_builder,
+            queryweave::__private::model_data::<Model, _>(vec![
                 condition("number", FilterOperator::Equal),
                 condition("client", FilterOperator::Equal),
             ]),
-            "number = $1 AND client = $2 "
+            junction,
         );
+
+        assert_eq!(query_builder.sql(), expected_sql);
         assert_eq!(conditions_sql::<Postgres>(Vec::new()), "");
     }
 

@@ -101,16 +101,16 @@ fn a_query_without_filters_has_no_where_clause_on_any_database() {
     );
 }
 
-// The filter options join their conditions with the given separator.
+// The filter options join their conditions with the given junction.
 #[test]
-fn filter_options_are_joined_by_the_separator() {
+fn filter_options_are_joined_by_the_junction() {
     let mut query_builder = QueryBuilder::<Postgres>::new("");
     OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel {
         delivery_date_gt: Some(DateTime::<Utc>::UNIX_EPOCH),
         client_eq: Some(String::from("acme")),
         ..Default::default()
     })
-    .append_to_query(&mut query_builder, "OR");
+    .append_to_query(&mut query_builder, queryweave_sql::Junction::Or);
 
     assert_eq!(query_builder.sql(), "delivered_at > $1 OR client = $2 ");
 }

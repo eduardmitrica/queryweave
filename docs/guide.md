@@ -243,8 +243,9 @@ pub struct UsersFilterOptionsModelWrapper(pub UsersFilterOptionsModel);
 pub struct UsersQueryModelWrapper(pub UsersQueryModel);
 ```
 
-- `AppendToQueryWithSeparator` writes the filters, joined by a separator
-  (`"AND"`), for example after your own `WHERE`, or in a `COUNT(*)` query.
+- `AppendToQueryWithSeparator` writes the filters, joined by a `Junction`
+  (`Junction::And` or `Junction::Or`), for example after your own `WHERE`, or
+  in a `COUNT(*)` query.
 - `AppendToQuery` writes a whole query's clauses: `WHERE` (through the
   filters wrapper named by `filters`), `ORDER BY` and `LIMIT`/`OFFSET`.
 

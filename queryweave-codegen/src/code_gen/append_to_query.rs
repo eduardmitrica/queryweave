@@ -34,7 +34,7 @@ pub fn code_gen(
                             #runtime::ConditionsTarget::write_where(query);
 
                             let wrapper = #with_separator_wrapper_ident(inner.and.clone());
-                            #runtime::AppendToQueryWithSeparator::append_to_query(&wrapper, query, "AND");
+                            #runtime::AppendToQueryWithSeparator::append_to_query(&wrapper, query, #runtime::Junction::And);
                         }
                     }
                     fn build_clauses_after_where_clause<Q: #runtime::OrderByTarget + #runtime::PageTarget>(

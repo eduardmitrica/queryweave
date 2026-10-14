@@ -11,7 +11,7 @@
 
 #[cfg(feature = "merge-patch")]
 use crate::AssignmentsTarget;
-use crate::{ConditionsTarget, OrderByTarget};
+use crate::{ConditionsTarget, Junction, OrderByTarget};
 #[cfg(feature = "merge-patch")]
 use queryweave::FieldValues;
 use queryweave::{Conditions, PersistedFields, SortKeys};
@@ -38,9 +38,9 @@ pub trait Columns {
         column_for(Self::COLUMNS, field)
     }
 
-    /// Push the conditions of the model `M` to a query, joined by `separator`
-    /// (e.g. `AND`), each a `column operator value` comparison against the
-    /// column the table stores its domain field in.
+    /// Push the conditions of the model `M` to a query, joined by `junction`,
+    /// each a `column operator value` comparison against the column the table
+    /// stores its domain field in.
     ///
     /// The conditions are a generated filter-options model's `conditions()`.
     /// Values are bound with their own SQL type; the `LIKE` operators bind an
@@ -51,11 +51,11 @@ pub trait Columns {
     fn push_conditions<Q: ConditionsTarget, M: PersistedFields>(
         query: &mut Q,
         conditions: Conditions<M>,
-        separator: &str,
+        junction: Junction,
     ) {
         const { assert_model_columns::<Self, M>() };
 
-        query.write_conditions::<Self, M>(conditions, separator);
+        query.write_conditions::<Self, M>(conditions, junction);
     }
 
     /// Push an `ORDER BY column direction, …` clause for the sort keys of the

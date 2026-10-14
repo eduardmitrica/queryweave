@@ -6,29 +6,29 @@ impl ::queryweave_sql::AppendToQueryWithSeparator for OrdersFilterOptionsModelWr
     fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
         query: &mut Q,
-        separator: &str,
+        junction: ::queryweave_sql::Junction,
     ) {
         <crate::entities::order::Order as ::queryweave_sql::Columns>::push_conditions(
             query,
             self.0.conditions(),
-            separator,
+            junction,
         );
     }
 }
 impl OrdersFilterOptionsModelWrapper {
     /// Append the set filters to the query as conditions joined by
-    /// `separator` (e.g. `AND`).
+    /// `junction`.
     ///
     /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
     pub fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
         query: &mut Q,
-        separator: &str,
+        junction: ::queryweave_sql::Junction,
     ) {
         <Self as ::queryweave_sql::AppendToQueryWithSeparator>::append_to_query(
             self,
             query,
-            separator,
+            junction,
         );
     }
 }

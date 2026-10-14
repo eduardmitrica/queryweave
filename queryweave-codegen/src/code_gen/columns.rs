@@ -70,20 +70,20 @@ pub fn code_gen(
         // writing the data), then calls the query's unchecked writer.
         impl #impl_generics #ident #type_generics #where_clause {
             /// Push the conditions of the model `M` (a generated filter-options
-            /// model's `conditions()`) to a query, joined by `separator`, each
+            /// model's `conditions()`) to a query, joined by `junction`, each
             /// against the column this entity stores its domain field in.
             ///
             /// See the `Columns` trait's `push_conditions`.
             pub fn push_conditions<Q, M>(
                 query: &mut Q,
                 conditions: #runtime::Conditions<M>,
-                separator: &str,
+                junction: #runtime::Junction,
             ) where
                 Q: #runtime::ConditionsTarget,
                 M: #runtime::PersistedFields,
             {
                 const { #runtime::__private::assert_model_columns::<Self, M>() };
-                #runtime::ConditionsTarget::write_conditions::<Self, M>(query, conditions, separator);
+                #runtime::ConditionsTarget::write_conditions::<Self, M>(query, conditions, junction);
             }
 
             /// Push an `ORDER BY` clause for the sort keys of the model `M` (a

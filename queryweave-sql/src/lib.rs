@@ -36,11 +36,12 @@ pub use columns::{
     Columns, Message, column_for, first_field_without_column, missing_column_message,
 };
 pub use sql::{
-    LIKE_ESCAPE, escape_like, like_pattern, page_offset, push_page, sql_direction, sql_operator,
+    LIKE_ESCAPE, escape_like, like_pattern, page_offset, push_page, sql_direction, sql_junction,
+    sql_operator,
 };
 #[cfg(feature = "merge-patch")]
 pub use target::AssignmentsTarget;
-pub use target::{ConditionsTarget, OrderByTarget, PageTarget};
+pub use target::{ConditionsTarget, Junction, OrderByTarget, PageTarget};
 
 /// The sqlx query builder the clauses are appended to, and the separated
 /// builder `Columns::push_assignments` returns for it: re-exported so callers
@@ -77,5 +78,5 @@ pub trait AppendToQuery {
 pub trait AppendToQueryWithSeparator {
     /// Append to query individual filters: any target taking conditions (for
     /// sqlx, a `QueryBuilder` of any `BindValues` database).
-    fn append_to_query<Q: ConditionsTarget>(&self, query: &mut Q, separator: &str);
+    fn append_to_query<Q: ConditionsTarget>(&self, query: &mut Q, junction: Junction);
 }

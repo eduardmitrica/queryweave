@@ -22,7 +22,7 @@ impl ::queryweave_sql::AppendToQuery for OrdersQueryModelWrapper {
                 ::queryweave_sql::AppendToQueryWithSeparator::append_to_query(
                     &wrapper,
                     query,
-                    "AND",
+                    ::queryweave_sql::Junction::And,
                 );
             }
         }
