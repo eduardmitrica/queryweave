@@ -18,18 +18,20 @@ workspace = true
 [dependencies]
 queryweave = { path = "../queryweave", version = "0.1.0", default-features = false }
 
-chrono.workspace = true
-# No driver: the SQL helpers are generic over any database whose driver binds
-# the domain's raw values (`BindValues`).
-sqlx.workspace = true
+# The `sqlx` backend. No driver: it is generic over any database whose driver
+# binds the domain's raw values (`BindValues`).
+chrono = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true }
 mutants.workspace = true
 
 [features]
 # Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
 # and their runtime): on by default; turn the default features off for the
 # filters alone.
-default = ["merge-patch"]
+default = ["merge-patch", "sqlx"]
 merge-patch = ["queryweave/merge-patch"]
+# sqlx's `QueryBuilder` as a query the SQL is written into.
+sqlx = ["dep:sqlx", "dep:chrono"]
 
 [dev-dependencies]
 rstest.workspace = true
@@ -40,3 +42,18 @@ sqlx = { workspace = true, features = ["runtime-tokio", "postgres", "mysql", "sq
 # The database tests (`tests/postgres.rs`, `tests/mysql.rs`) start their
 # servers in containers.
 testcontainers.workspace = true
+# The feature checks' UI cases (`tests/ui/features`).
+trybuild.workspace = true
+
+# The SQL tests run through sqlx's `QueryBuilder`.
+[[test]]
+name = "sqlite"
+required-features = ["sqlx"]
+
+[[test]]
+name = "postgres"
+required-features = ["sqlx"]
+
+[[test]]
+name = "mysql"
+required-features = ["sqlx"]

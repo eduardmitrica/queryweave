@@ -1,0 +1,13 @@
+error[E0277]: `QueryBuilder<'static, Postgres>` is not a query `queryweave-sql` can write conditions into
+ --> tests/ui/features/sqlx.rs:5:33
+  |
+5 | const _: () = requires_target::<sqlx::QueryBuilder<'static, sqlx::Postgres>>();
+  |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ not a `ConditionsTarget`
+  |
+  = help: the trait `ConditionsTarget` is not implemented for `QueryBuilder<'static, Postgres>`
+  = note: sqlx's `QueryBuilder` is one when `queryweave-sql`'s `sqlx` feature is enabled (it is by default): `queryweave-sql = { version = "..", features = ["sqlx"] }`
+note: required by a bound in `requires_target`
+ --> tests/ui/features/sqlx.rs:3:29
+  |
+3 | const fn requires_target<Q: queryweave_sql::ConditionsTarget>() {}
+  |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `requires_target`

@@ -7,14 +7,14 @@ queryweave, read the [guide](guide.md) instead.
 
 ## The crates
 
-| Crate                           | Kind       | Role                                                                                                     |
-| ------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------- |
-| `queryweave`                    | library    | Core runtime: what the code generated for a domain model names. No database or serializer dependency.    |
-| `queryweave-api`                | library    | API runtime: `PageDto`, `SortDirectionDto`, one feature per integration (`serde`, `utoipa`, `schemars`). |
-| `queryweave-sql`                | library    | SQL runtime: `Columns`, the clause writers, generic over any sqlx database. No driver dependency.        |
-| `queryweave-codegen`            | library    | The code generation of every derive, as ordinary functions generic over the conventions.                 |
-| `queryweave-derive`             | proc-macro | The derives, each one line calling `queryweave-codegen` with the default conventions.                    |
-| `queryweave-custom-conventions` | proc-macro | Test fixture: the derives under other conventions and an integration of its own. Not published.          |
+| Crate                           | Kind       | Role                                                                                                               |
+| ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `queryweave`                    | library    | Core runtime: what the code generated for a domain model names. No database or serializer dependency.              |
+| `queryweave-api`                | library    | API runtime: `PageDto`, `SortDirectionDto`, one feature per integration (`serde`, `utoipa`, `schemars`).           |
+| `queryweave-sql`                | library    | SQL runtime: `Columns`, the clause writers, generic over the query (sqlx's, feature `sqlx`). No driver dependency. |
+| `queryweave-codegen`            | library    | The code generation of every derive, as ordinary functions generic over the conventions.                           |
+| `queryweave-derive`             | proc-macro | The derives, each one line calling `queryweave-codegen` with the default conventions.                              |
+| `queryweave-custom-conventions` | proc-macro | Test fixture: the derives under other conventions and an integration of its own. Not published.                    |
 
 Two rules shape this split:
 
@@ -147,7 +147,12 @@ trait per clause it can take (`ConditionsTarget`, `OrderByTarget`,
 `AssignmentsTarget`, `PageTarget`): the generated code names no query
 builder, and the target decides how the clause is written. sqlx's
 `QueryBuilder` is the one implemented, appending SQL text and binding the
-values.
+values. Each query builder is a backend module (`backend/sqlx.rs`) behind a
+Cargo feature of its name (`sqlx`, on by default), which only adds the
+target-trait impls, so unifying features never changes generated code. The
+target traits name the feature in their `diagnostic::on_unimplemented`
+message, so a disabled backend is reported as such rather than as a missing
+trait.
 
 All SQL in `queryweave-sql` and the code generated for it is portable:
 generic over the query (and, for sqlx, over `DB: BindValues`), standard SQL only (no `RETURNING`, `ILIKE`,
@@ -271,6 +276,10 @@ existing derive generates. `Columns` emits `push_assignments` only when
 `queryweave-codegen` has the feature, since its generated code cannot test
 `queryweave-sql`'s features. `scripts/check.sh` checks the crates
 build without it.
+
+`queryweave-sql`'s `sqlx` feature (default) is its sqlx backend (see the
+persistence layer above); `scripts/check.sh` checks the crate with and
+without it, including the UI case of its error.
 
 ## Versions
 

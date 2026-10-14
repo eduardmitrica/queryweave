@@ -119,7 +119,8 @@ changed, `Columns` writes those fields as a `SET` clause, and
 cannot be cleared.
 
 Merge patches are behind the `merge-patch` feature, on by default. Turn the
-default features off on the queryweave crates to use the filters alone.
+default features off on the queryweave crates to use the filters alone (and
+keep `queryweave-sql`'s `sqlx` feature: `features = ["sqlx"]`).
 
 ## The crates
 

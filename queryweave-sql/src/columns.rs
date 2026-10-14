@@ -20,8 +20,8 @@ use queryweave::{Conditions, PersistedFields, SortKeys};
 /// fields, and the SQL written for that model's data against those columns.
 ///
 /// The SQL methods are generic over the query they write into (a target, such
-/// as sqlx's `QueryBuilder` for any [`BindValues`](crate::BindValues)
-/// database: Postgres, MySQL/MariaDB, SQLite) and over the model `M`, both
+/// as sqlx's `QueryBuilder` for any `BindValues` database: Postgres,
+/// MySQL/MariaDB, SQLite) and over the model `M`, both
 /// taken from the arguments: `Order::push_assignments(&mut query_builder,
 /// order.changed_values(&diff))`. Each fails to build unless every field of
 /// `M` has a column on the table.

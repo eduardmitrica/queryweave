@@ -272,7 +272,9 @@ and a field set to `null` is cleared, if it may be.
 
 They are behind the `merge-patch` feature, on by default in every queryweave
 crate. For filtering, sorting and paging alone, turn the default features off
-(`default-features = false`) on each queryweave crate you use.
+(`default-features = false`) on each queryweave crate you use, keeping
+`queryweave-sql`'s sqlx backend:
+`queryweave-sql = { version = "0.1", default-features = false, features = ["sqlx"] }`.
 
 ### `Patch<T>`: the only way to say "absent, null or a value"
 
