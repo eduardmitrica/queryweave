@@ -13,7 +13,7 @@
 | ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `queryweave`                    | lib        | Core runtime, named by code generated for root models: `Filterable`, role traits (`QueryOf`, `FilterOptionsOf`, `SortFieldOf`, `SortDetailsOf`), `IntoRootQuery`, `SortDirectionModel`, `ChangeSet`, `ChangedFields`, `MergePatchNullableFields`, `NullableFields`, `RawValue` + `Ordered` / `Text` / `Boolean`, `FilterOperator`, `Value` / `IntoValue` / `FilterCondition` / `SortKey` / `FieldValue`, `PersistedFields`, `ModelData` / `Conditions` / `SortKeys` / `FieldValues`, `__private::model_data` (generated code only). No sqlx, no serializer, no SQL text. |
 | `queryweave-api`                | lib        | API runtime: `PageDto<T>`, `SortDirectionDto` (converts both ways with `SortDirectionModel`), `features::{Serde, Utoipa, Schemars}`. Features `serde`, `utoipa`, `schemars`, none by default. Re-exports the core. Never sqlx.                                                                                                                                                                                                                                                                                                                                           |
-| `queryweave-sql`                | lib        | SQL runtime: `Columns` (+ `push_conditions`, `push_order_by`, `push_assignments`), `AppendToQuery`, `AppendToQueryWithSeparator`, `assert_columns!`, `push_page`, `sql_operator`, `sql_direction`, `BindValues`, `__private` (generated code only). Re-exports the core. No driver dependency.                                                                                                                                                                                                                                                                           |
+| `queryweave-sql`                | lib        | SQL runtime: `Columns` (+ `push_conditions`, `push_order_by`, `push_assignments`), the target traits (`ConditionsTarget`, `OrderByTarget`, `AssignmentsTarget`, `PageTarget`; sqlx's `QueryBuilder` implements them), `AppendToQuery`, `AppendToQueryWithSeparator`, `assert_columns!`, `push_page`, `sql_operator`, `sql_direction`, `BindValues`, `__private` (generated code only). Re-exports the core. No driver dependency.                                                                                                                                                                                                                                                                           |
 | `queryweave-codegen`            | lib        | Code generation: `filters::<C>`, `merge_patch::<C>`, `merge_patch_nullable_fields::<C>`, `validate_non_nullable::<C>`, `raw_value::<C>`, `columns::<C>`, `append_to_query::<C>`, `append_to_query_with_separator::<C>` (`TokenStream -> TokenStream`). Public modules: `conventions`, `integrations`, `errors`, `names`. Private: `steps`, `attributes`, `checks`, `utils`, the step modules.                                                                                                                                                                            |
 | `queryweave-derive`             | proc-macro | Every derive under `DefaultConventions`, one line each. Exports only derives. Holds behavior tests and trybuild UI suites.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `queryweave-custom-conventions` | proc-macro | Test fixture: other conventions and an integration (`wire`). `publish = false`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -72,9 +72,11 @@ Filterable>::Query`: coherence rejects it, overlapping `impl<T> From<T> for T`).
   `Columns` (`#[domain_field(name)]` where they differ).
 - SQL for a model's data is written only through the entity's `push_*`
   methods, taking `ModelData<Model, _>` (data cannot be paired with another
-  model); they check column coverage at build time (post-monomorphization).
+  model); they check column coverage at build time (post-monomorphization),
+  then call the query's unchecked `write_*` (its target trait).
   The wrapper derives also emit `assert_columns!` (reported by `cargo check`).
-- SQL is database-agnostic: generic over `DB: BindValues`, standard SQL, every
+- SQL is database-agnostic: generic over the query's target traits (sqlx's
+  impls over `DB: BindValues`), standard SQL, every
   value bound, `LIKE ... ESCAPE '!'`. A new SQL helper gets a rendering test per
   database and runs in `queryweave-sql/tests/sqlite.rs`.
 
@@ -136,8 +138,9 @@ flag_option}`; every link is an option of the derive's own attribute
 - Every derive's output ends with `require_version(MAJOR, MINOR)` in its
   runtime (`steps::expand`, `Derive::runtime`); pre-1.0 minors must match,
   post-1.0 runtime minor >= generator minor.
-- Generated code reaches sqlx only through `queryweave-sql`'s re-exports
-  (`QueryBuilder`, `Separated`), never a relative `sqlx::` path.
+- Generated code never names sqlx: it is generic over the query's target
+  traits (`queryweave-sql` still re-exports `QueryBuilder` and `Separated` for
+  callers).
 
 ### Conventions
 

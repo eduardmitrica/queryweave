@@ -134,12 +134,39 @@ For `UserDto`:
 
 A mirror without sortable fields has no `sort` parameter at all.
 
+### Reading the query string
+
+With the `serde` flag, the query parameters deserialize from a query string.
+The filters, `page` and `page_size` are flat parameters. `sort` is a list of
+sort instructions, each a `field` and an `order` (`ascending` or
+`descending`), which a query string writes with brackets:
+
+```text
+GET /users?username_sw=ad&page=2&page_size=20&sort[0][field]=username&sort[0][order]=ascending
+```
+
+Read it with [serde_qs](https://docs.rs/serde_qs), which understands that
+notation. `serde_urlencoded`, which axum's own `Query` extractor uses, does
+not: it reads the flat parameters but fails on `sort`. serde_qs has an
+extractor for axum, `serde_qs::axum::QsQuery`, behind its `axum` feature.
+
+With the `utoipa` flag, `sort` is documented in the same format (a deep
+object).
+
+serde is one choice among others. A mirror without the `serde` flag, plain or
+with an integration of your own for another serializer (see
+[integrations.md](integrations.md)), is read by whatever that layer uses, and
+serde_qs does not apply. The shape stays the same, so that reader has to
+handle a list of structs for `sort`.
+
 ### Converting
 
 The query parameters convert into the model's query with `.into()`:
 
 ```rust,ignore
-async fn list_users(Query(params): Query<UsersQueryParams>) -> ... {
+use serde_qs::axum::QsQuery;
+
+async fn list_users(QsQuery(params): QsQuery<UsersQueryParams>) -> ... {
     let query: UsersQueryModel = params.into();
     ...
 }
@@ -167,7 +194,11 @@ reaches a root model".
 ## 3. The database: `Columns`, `AppendToQuery`, `AppendToQueryWithSeparator`
 
 The persistence layer maps the model's fields onto the columns of its entity,
-then builds SQL from the query.
+then builds SQL from the query. The SQL is built on
+[sqlx](https://docs.rs/sqlx): the clauses are appended to a sqlx
+`QueryBuilder`, for any of Postgres, MySQL/MariaDB and SQLite, and every value
+is bound. Only `queryweave-sql` depends on sqlx, so the other layers do not
+get it.
 
 ### `Columns` on the entity
 

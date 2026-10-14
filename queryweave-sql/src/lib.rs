@@ -19,6 +19,7 @@
 mod bind;
 mod columns;
 mod sql;
+mod target;
 
 pub use queryweave::*;
 
@@ -27,6 +28,9 @@ pub use columns::{
     Columns, Message, column_for, first_field_without_column, missing_column_message,
 };
 pub use sql::{push_page, sql_direction, sql_operator};
+#[cfg(feature = "merge-patch")]
+pub use target::AssignmentsTarget;
+pub use target::{ConditionsTarget, OrderByTarget, PageTarget};
 
 /// The sqlx query builder the clauses are appended to, and the separated
 /// builder `Columns::push_assignments` returns: re-exported so the generated
@@ -39,36 +43,28 @@ pub use sqlx::{QueryBuilder, query_builder::Separated};
 ///
 /// The inherent methods `#[derive(Columns)]` emits run the column check
 /// themselves (so a missing column is reported at *their* caller, the line
-/// writing the data, rather than inside the derive) and then call the
-/// unchecked writers here, so the check is not reported twice.
+/// writing the data, rather than inside the derive) and then call the target's
+/// unchecked `write_*` method, so the check is not reported twice.
 #[doc(hidden)]
 pub mod __private {
     pub use crate::columns::assert_model_columns;
-    #[cfg(feature = "merge-patch")]
-    pub use crate::sql::push_assignments;
-    pub use crate::sql::{push_conditions, push_order_by};
     pub use queryweave::__private::*;
 }
 
 /// Append the filters query to the parent query.
 pub trait AppendToQuery {
-    /// Append the filters query to the parent query, for any [`BindValues`]
-    /// database.
-    fn append_to_query<DB, F>(
-        &self,
-        query_builder: &mut QueryBuilder<'_, DB>,
-        privileged_guard_option: Option<F>,
-    ) where
-        DB: BindValues,
-        F: FnOnce(&mut QueryBuilder<'_, DB>, &Self);
+    /// Append the filters query to the parent query: any target taking
+    /// conditions, an `ORDER BY` and a page (for sqlx, a `QueryBuilder` of any
+    /// [`BindValues`] database).
+    fn append_to_query<Q, F>(&self, query: &mut Q, privileged_guard_option: Option<F>)
+    where
+        Q: ConditionsTarget + OrderByTarget + PageTarget,
+        F: FnOnce(&mut Q, &Self);
 }
 
 /// Append to query individual filters.
 pub trait AppendToQueryWithSeparator {
-    /// Append to query individual filters, for any [`BindValues`] database.
-    fn append_to_query<DB: BindValues>(
-        &self,
-        query_builder: &mut QueryBuilder<'_, DB>,
-        separator: &str,
-    );
+    /// Append to query individual filters: any target taking conditions (for
+    /// sqlx, a `QueryBuilder` of any [`BindValues`] database).
+    fn append_to_query<Q: ConditionsTarget>(&self, query: &mut Q, separator: &str);
 }

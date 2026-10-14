@@ -36,19 +36,20 @@ pub fn code_gen(
         quote! {
             /// Push `column = value` assignments of the model `M` (a `MergePatch`
             /// model's `changed_values`) for an `UPDATE … SET`, comma separated,
-            /// returning the separated builder so more can be added.
+            /// returning what the query gives to add more (for sqlx, the
+            /// separated builder).
             ///
             /// See the `Columns` trait's `push_assignments`.
-            pub fn push_assignments<'qb, 'args, DB, M>(
-                query_builder: &'qb mut #runtime::QueryBuilder<'args, DB>,
+            pub fn push_assignments<Q, M>(
+                query: &mut Q,
                 assignments: #runtime::FieldValues<M>,
-            ) -> #runtime::Separated<'qb, 'args, DB, &'static str>
+            ) -> <Q as #runtime::AssignmentsTarget>::Assignments<'_>
             where
-                DB: #runtime::BindValues,
+                Q: #runtime::AssignmentsTarget,
                 M: #runtime::PersistedFields,
             {
                 const { #runtime::__private::assert_model_columns::<Self, M>() };
-                #runtime::__private::push_assignments::<Self, DB, M>(query_builder, assignments)
+                #runtime::AssignmentsTarget::write_assignments::<Self, M>(query, assignments)
             }
         }
     } else {
@@ -66,23 +67,23 @@ pub fn code_gen(
         // The SQL methods again as inherent ones, so callers use them without
         // importing `queryweave_sql::Columns`. Each runs the column check
         // itself, so a missing column is reported at its caller (the line
-        // writing the data), then calls the unchecked writer.
+        // writing the data), then calls the query's unchecked writer.
         impl #impl_generics #ident #type_generics #where_clause {
             /// Push the conditions of the model `M` (a generated filter-options
             /// model's `conditions()`) to a query, joined by `separator`, each
             /// against the column this entity stores its domain field in.
             ///
             /// See the `Columns` trait's `push_conditions`.
-            pub fn push_conditions<DB, M>(
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
+            pub fn push_conditions<Q, M>(
+                query: &mut Q,
                 conditions: #runtime::Conditions<M>,
                 separator: &str,
             ) where
-                DB: #runtime::BindValues,
+                Q: #runtime::ConditionsTarget,
                 M: #runtime::PersistedFields,
             {
                 const { #runtime::__private::assert_model_columns::<Self, M>() };
-                #runtime::__private::push_conditions::<Self, DB, M>(query_builder, conditions, separator);
+                #runtime::ConditionsTarget::write_conditions::<Self, M>(query, conditions, separator);
             }
 
             /// Push an `ORDER BY` clause for the sort keys of the model `M` (a
@@ -90,15 +91,15 @@ pub fn code_gen(
             /// entity stores its domain field in; nothing when there are none.
             ///
             /// See the `Columns` trait's `push_order_by`.
-            pub fn push_order_by<DB, M>(
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
+            pub fn push_order_by<Q, M>(
+                query: &mut Q,
                 sort_keys: #runtime::SortKeys<M>,
             ) where
-                DB: #runtime::BindValues,
+                Q: #runtime::OrderByTarget,
                 M: #runtime::PersistedFields,
             {
                 const { #runtime::__private::assert_model_columns::<Self, M>() };
-                #runtime::__private::push_order_by::<Self, DB, M>(query_builder, sort_keys);
+                #runtime::OrderByTarget::write_order_by::<Self, M>(query, sort_keys);
             }
 
             #assignments

@@ -141,10 +141,16 @@ only by generated code. Domain field names become column names in exactly one
 place, an entity deriving `Columns`. Its `push_conditions`, `push_order_by`
 and `push_assignments` take the tagged data, so data cannot be paired with
 another model's entity, and check when the code is built (after
-monomorphization) that every field of the model has a column.
+monomorphization) that every field of the model has a column. They then hand
+the data and the entity's columns to the query being built, through one
+trait per clause it can take (`ConditionsTarget`, `OrderByTarget`,
+`AssignmentsTarget`, `PageTarget`): the generated code names no query
+builder, and the target decides how the clause is written. sqlx's
+`QueryBuilder` is the one implemented, appending SQL text and binding the
+values.
 
 All SQL in `queryweave-sql` and the code generated for it is portable:
-generic over `DB: BindValues`, standard SQL only (no `RETURNING`, `ILIKE`,
+generic over the query (and, for sqlx, over `DB: BindValues`), standard SQL only (no `RETURNING`, `ILIKE`,
 casts or quoted identifiers), every value bound, `LIKE` patterns escaped with
 `!`. Each SQL helper has a rendering test per database, and runs against
 SQLite.
@@ -249,8 +255,8 @@ Macro failures go through `errors` (a spanned message and a `help`), never
 ### Paths in generated code
 
 Generated code names the runtime crate only through the path its mapping step
-resolved (and reaches sqlx through it too: `queryweave-sql` re-exports
-`QueryBuilder` and `Separated`): `#[queryweave(crate = path)]`, or the conventions' `core_crate()`,
+resolved (and never sqlx: it is generic over the query's target traits):
+`#[queryweave(crate = path)]`, or the conventions' `core_crate()`,
 `api_crate()` or `sql_crate()` (absolute by default, so a local item cannot
 shadow them). It never assumes what the user imported.
 

@@ -15,14 +15,10 @@ pub fn code_gen(
 
     quote! {
         impl #runtime::AppendToQueryWithSeparator for #name {
-            fn append_to_query<DB: #runtime::BindValues>(
-                &self,
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                separator: &str,
-            ) {
+            fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, separator: &str) {
                 // The domain model describes its set filters as data; turning
                 // them into SQL, against the entity's columns, happens here.
-                <#columns as #runtime::Columns>::push_conditions(query_builder, self.0.conditions(), separator);
+                <#columns as #runtime::Columns>::push_conditions(query, self.0.conditions(), separator);
             }
         }
 
@@ -33,12 +29,8 @@ pub fn code_gen(
             /// `separator` (e.g. `AND`).
             ///
             /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
-            pub fn append_to_query<DB: #runtime::BindValues>(
-                &self,
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                separator: &str,
-            ) {
-                <Self as #runtime::AppendToQueryWithSeparator>::append_to_query(self, query_builder, separator);
+            pub fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, separator: &str) {
+                <Self as #runtime::AppendToQueryWithSeparator>::append_to_query(self, query, separator);
             }
         }
 

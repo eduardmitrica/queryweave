@@ -4,6 +4,11 @@ queryweave generates the code that lets the clients of an application filter,
 sort, page through and partially update its data, from a few attributes on
 your domain model.
 
+The SQL is built on [sqlx](https://docs.rs/sqlx), for Postgres, MySQL/MariaDB
+and SQLite. The query parameters work with the libraries you choose: with
+serde, they deserialize from a query string read by
+[serde_qs](https://docs.rs/serde_qs).
+
 ## The problem it solves
 
 Take a list endpoint: `GET /users?username_sw=ad&page=2&page_size=20`, which
@@ -65,6 +70,14 @@ string, is documented in the OpenAPI schema and validates the page size and
 sort, and converts into the domain's query with `.into()`. A field the API
 names differently maps onto the model's with `#[equivalent_field(name)]`, and
 a name the model does not have is a compile error at that field.
+
+The filters and the page are flat parameters, but `sort` is a list of fields
+and orders, which a query string writes with brackets:
+`?username_sw=ad&sort[0][field]=username&sort[0][order]=ascending`. With the
+`serde` flag, read it with [serde_qs](https://docs.rs/serde_qs), which
+understands that notation; `serde_urlencoded`, which axum's own `Query`
+extractor uses, does not. A mirror using another serializer needs a reader
+of its own that handles a list of structs.
 
 The persistence layer maps the model's fields onto the columns of its
 entity, and gets the SQL from that:

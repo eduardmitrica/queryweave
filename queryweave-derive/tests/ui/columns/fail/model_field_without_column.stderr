@@ -2,7 +2,7 @@ error[E0080]: evaluation panicked: domain field `client` has no column on `Order
   --> tests/ui/columns/fail/model_field_without_column.rs:15:10
    |
 15 | #[derive(Columns)]
-   |          ^^^^^^^ evaluation of `Order::push_assignments::<sqlx::Postgres, OrderModel>::{constant#0}` failed inside this call
+   |          ^^^^^^^ evaluation of `Order::push_assignments::<queryweave_sql::QueryBuilder<'_, sqlx::Postgres>, OrderModel>::{constant#0}` failed inside this call
    |
 note: inside `queryweave_sql::__private::assert_model_columns::<Order, OrderModel>`
   --> $RUST/core/src/panic.rs
@@ -23,7 +23,7 @@ note: erroneous constant encountered
    |
    = note: this note originates in the derive macro `Columns` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-note: the above error was encountered while instantiating `fn Order::push_assignments::<Postgres, OrderModel>`
+note: the above error was encountered while instantiating `fn Order::push_assignments::<QueryBuilder<'_, Postgres>, OrderModel>`
   --> tests/ui/columns/fail/model_field_without_column.rs:24:13
    |
 24 |     let _ = Order::push_assignments(&mut query_builder, changed_values);

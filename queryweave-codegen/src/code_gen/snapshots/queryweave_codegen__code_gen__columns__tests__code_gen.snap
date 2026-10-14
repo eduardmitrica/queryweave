@@ -16,61 +16,53 @@ impl Order {
     /// against the column this entity stores its domain field in.
     ///
     /// See the `Columns` trait's `push_conditions`.
-    pub fn push_conditions<DB, M>(
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
+    pub fn push_conditions<Q, M>(
+        query: &mut Q,
         conditions: ::queryweave_sql::Conditions<M>,
         separator: &str,
     )
     where
-        DB: ::queryweave_sql::BindValues,
+        Q: ::queryweave_sql::ConditionsTarget,
         M: ::queryweave_sql::PersistedFields,
     {
         const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
-        ::queryweave_sql::__private::push_conditions::<
+        ::queryweave_sql::ConditionsTarget::write_conditions::<
             Self,
-            DB,
             M,
-        >(query_builder, conditions, separator);
+        >(query, conditions, separator);
     }
     /// Push an `ORDER BY` clause for the sort keys of the model `M` (a
     /// generated query model's `sort_keys()`), each by the column this
     /// entity stores its domain field in; nothing when there are none.
     ///
     /// See the `Columns` trait's `push_order_by`.
-    pub fn push_order_by<DB, M>(
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
-        sort_keys: ::queryweave_sql::SortKeys<M>,
-    )
+    pub fn push_order_by<Q, M>(query: &mut Q, sort_keys: ::queryweave_sql::SortKeys<M>)
     where
-        DB: ::queryweave_sql::BindValues,
+        Q: ::queryweave_sql::OrderByTarget,
         M: ::queryweave_sql::PersistedFields,
     {
         const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
-        ::queryweave_sql::__private::push_order_by::<
-            Self,
-            DB,
-            M,
-        >(query_builder, sort_keys);
+        ::queryweave_sql::OrderByTarget::write_order_by::<Self, M>(query, sort_keys);
     }
     /// Push `column = value` assignments of the model `M` (a `MergePatch`
     /// model's `changed_values`) for an `UPDATE … SET`, comma separated,
-    /// returning the separated builder so more can be added.
+    /// returning what the query gives to add more (for sqlx, the
+    /// separated builder).
     ///
     /// See the `Columns` trait's `push_assignments`.
-    pub fn push_assignments<'qb, 'args, DB, M>(
-        query_builder: &'qb mut ::queryweave_sql::QueryBuilder<'args, DB>,
+    pub fn push_assignments<Q, M>(
+        query: &mut Q,
         assignments: ::queryweave_sql::FieldValues<M>,
-    ) -> ::queryweave_sql::Separated<'qb, 'args, DB, &'static str>
+    ) -> <Q as ::queryweave_sql::AssignmentsTarget>::Assignments<'_>
     where
-        DB: ::queryweave_sql::BindValues,
+        Q: ::queryweave_sql::AssignmentsTarget,
         M: ::queryweave_sql::PersistedFields,
     {
         const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
-        ::queryweave_sql::__private::push_assignments::<
+        ::queryweave_sql::AssignmentsTarget::write_assignments::<
             Self,
-            DB,
             M,
-        >(query_builder, assignments)
+        >(query, assignments)
     }
 }
 const _: fn(domain::models::order::OrderModel) = |value| {

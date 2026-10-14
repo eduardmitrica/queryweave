@@ -7,44 +7,39 @@ expression: "prettyplease::unparse(&syn::parse2::<syn::File>(token_stream).unwra
     ::queryweave_sql::PersistedFields > ::FIELD_NAMES
 );
 impl ::queryweave_sql::AppendToQuery for OrdersQueryModelWrapper {
-    fn append_to_query<DB, F>(
-        &self,
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
-        privileged_guard_option: Option<F>,
-    )
+    fn append_to_query<Q, F>(&self, query: &mut Q, privileged_guard_option: Option<F>)
     where
-        DB: ::queryweave_sql::BindValues,
-        F: FnOnce(&mut ::queryweave_sql::QueryBuilder<'_, DB>, &Self),
+        Q: ::queryweave_sql::ConditionsTarget + ::queryweave_sql::OrderByTarget
+            + ::queryweave_sql::PageTarget,
+        F: FnOnce(&mut Q, &Self),
     {
-        fn start_building_where_clause_if_has_options<DB: ::queryweave_sql::BindValues>(
-            query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
-            query: &OrdersQueryModel,
-        ) {
-            if query.and.has_options() {
-                query_builder.push("WHERE ");
-                let wrapper = OrdersFilterOptionsModelWrapper(query.and.clone());
+        fn start_building_where_clause_if_has_options<
+            Q: ::queryweave_sql::ConditionsTarget,
+        >(query: &mut Q, inner: &OrdersQueryModel) {
+            if inner.and.has_options() {
+                ::queryweave_sql::ConditionsTarget::write_where(query);
+                let wrapper = OrdersFilterOptionsModelWrapper(inner.and.clone());
                 ::queryweave_sql::AppendToQueryWithSeparator::append_to_query(
                     &wrapper,
-                    query_builder,
+                    query,
                     "AND",
                 );
             }
         }
-        fn build_clauses_after_where_clause<DB: ::queryweave_sql::BindValues>(
-            query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
-            query: &OrdersQueryModel,
-        ) {
+        fn build_clauses_after_where_clause<
+            Q: ::queryweave_sql::OrderByTarget + ::queryweave_sql::PageTarget,
+        >(query: &mut Q, inner: &OrdersQueryModel) {
             <crate::entities::order::Order as ::queryweave_sql::Columns>::push_order_by(
-                query_builder,
-                query.sort_keys(),
+                query,
+                inner.sort_keys(),
             );
-            ::queryweave_sql::push_page(query_builder, query.page, query.page_size);
+            ::queryweave_sql::push_page(query, inner.page, inner.page_size);
         }
-        start_building_where_clause_if_has_options(query_builder, &self.0);
+        start_building_where_clause_if_has_options(query, &self.0);
         if let Some(function) = privileged_guard_option {
-            function(query_builder, &self);
+            function(query, &self);
         }
-        build_clauses_after_where_clause(query_builder, &self.0);
+        build_clauses_after_where_clause(query, &self.0);
     }
 }
 impl OrdersQueryModelWrapper {
@@ -53,18 +48,19 @@ impl OrdersQueryModelWrapper {
     /// `privileged_guard_option` between the filters and the sorting.
     ///
     /// See the `AppendToQuery` trait's `append_to_query`.
-    pub fn append_to_query<DB, F>(
+    pub fn append_to_query<Q, F>(
         &self,
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
+        query: &mut Q,
         privileged_guard_option: Option<F>,
     )
     where
-        DB: ::queryweave_sql::BindValues,
-        F: FnOnce(&mut ::queryweave_sql::QueryBuilder<'_, DB>, &Self),
+        Q: ::queryweave_sql::ConditionsTarget + ::queryweave_sql::OrderByTarget
+            + ::queryweave_sql::PageTarget,
+        F: FnOnce(&mut Q, &Self),
     {
         <Self as ::queryweave_sql::AppendToQuery>::append_to_query(
             self,
-            query_builder,
+            query,
             privileged_guard_option,
         );
     }

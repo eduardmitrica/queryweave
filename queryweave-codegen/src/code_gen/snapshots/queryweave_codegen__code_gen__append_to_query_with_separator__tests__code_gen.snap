@@ -3,13 +3,13 @@ source: queryweave/queryweave-codegen/src/code_gen/append_to_query_with_separato
 expression: "prettyplease::unparse(&syn::parse2::<syn::File>(token_stream).unwrap())"
 ---
 impl ::queryweave_sql::AppendToQueryWithSeparator for OrdersFilterOptionsModelWrapper {
-    fn append_to_query<DB: ::queryweave_sql::BindValues>(
+    fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
+        query: &mut Q,
         separator: &str,
     ) {
         <crate::entities::order::Order as ::queryweave_sql::Columns>::push_conditions(
-            query_builder,
+            query,
             self.0.conditions(),
             separator,
         );
@@ -20,14 +20,14 @@ impl OrdersFilterOptionsModelWrapper {
     /// `separator` (e.g. `AND`).
     ///
     /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
-    pub fn append_to_query<DB: ::queryweave_sql::BindValues>(
+    pub fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
-        query_builder: &mut ::queryweave_sql::QueryBuilder<'_, DB>,
+        query: &mut Q,
         separator: &str,
     ) {
         <Self as ::queryweave_sql::AppendToQueryWithSeparator>::append_to_query(
             self,
-            query_builder,
+            query,
             separator,
         );
     }

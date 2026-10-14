@@ -9,20 +9,20 @@
 //! [`assert_columns!`](crate::assert_columns) does the same as a standalone
 //! item, so a missing column is a build error rather than a runtime SQL error.
 
-use crate::BindValues;
+#[cfg(feature = "merge-patch")]
+use crate::AssignmentsTarget;
+use crate::{ConditionsTarget, OrderByTarget};
 #[cfg(feature = "merge-patch")]
 use queryweave::FieldValues;
 use queryweave::{Conditions, PersistedFields, SortKeys};
-use sqlx::QueryBuilder;
-#[cfg(feature = "merge-patch")]
-use sqlx::query_builder::Separated;
 
 /// A table (usually a `sqlx` entity) whose columns store a domain model's
 /// fields, and the SQL written for that model's data against those columns.
 ///
-/// The SQL methods are generic over the database (`DB: BindValues`: Postgres,
-/// MySQL/MariaDB, SQLite) and over the model `M`, both taken from the
-/// arguments: `Order::push_assignments(&mut query_builder,
+/// The SQL methods are generic over the query they write into (a target, such
+/// as sqlx's `QueryBuilder` for any [`BindValues`](crate::BindValues)
+/// database: Postgres, MySQL/MariaDB, SQLite) and over the model `M`, both
+/// taken from the arguments: `Order::push_assignments(&mut query_builder,
 /// order.changed_values(&diff))`. Each fails to build unless every field of
 /// `M` has a column on the table.
 pub trait Columns {
@@ -48,14 +48,14 @@ pub trait Columns {
     /// literally.
     ///
     /// Fails to build unless every field of `M` has a column on the table.
-    fn push_conditions<DB: BindValues, M: PersistedFields>(
-        query_builder: &mut QueryBuilder<'_, DB>,
+    fn push_conditions<Q: ConditionsTarget, M: PersistedFields>(
+        query: &mut Q,
         conditions: Conditions<M>,
         separator: &str,
     ) {
         const { assert_model_columns::<Self, M>() };
 
-        crate::sql::push_conditions::<Self, DB, M>(query_builder, conditions, separator);
+        query.write_conditions::<Self, M>(conditions, separator);
     }
 
     /// Push an `ORDER BY column direction, …` clause for the sort keys of the
@@ -65,31 +65,28 @@ pub trait Columns {
     /// order, each by the column the table stores its domain field in.
     ///
     /// Fails to build unless every field of `M` has a column on the table.
-    fn push_order_by<DB: BindValues, M: PersistedFields>(
-        query_builder: &mut QueryBuilder<'_, DB>,
-        sort_keys: SortKeys<M>,
-    ) {
+    fn push_order_by<Q: OrderByTarget, M: PersistedFields>(query: &mut Q, sort_keys: SortKeys<M>) {
         const { assert_model_columns::<Self, M>() };
 
-        crate::sql::push_order_by::<Self, DB, M>(query_builder, sort_keys);
+        query.write_order_by::<Self, M>(sort_keys);
     }
 
     #[cfg(feature = "merge-patch")]
     /// Push `column = value` assignments of the model `M` for an
-    /// `UPDATE … SET`, comma separated, returning the separated builder so
-    /// more can be added.
+    /// `UPDATE … SET`, comma separated, returning what the query gives to add
+    /// more (for sqlx, the separated builder).
     ///
     /// The assignments are a `MergePatch` model's `changed_values`, each to
     /// the column the table stores its domain field in.
     ///
     /// Fails to build unless every field of `M` has a column on the table.
-    fn push_assignments<'qb, 'args, DB: BindValues, M: PersistedFields>(
-        query_builder: &'qb mut QueryBuilder<'args, DB>,
+    fn push_assignments<Q: AssignmentsTarget, M: PersistedFields>(
+        query: &mut Q,
         assignments: FieldValues<M>,
-    ) -> Separated<'qb, 'args, DB, &'static str> {
+    ) -> Q::Assignments<'_> {
         const { assert_model_columns::<Self, M>() };
 
-        crate::sql::push_assignments::<Self, DB, M>(query_builder, assignments)
+        query.write_assignments::<Self, M>(assignments)
     }
 }
 

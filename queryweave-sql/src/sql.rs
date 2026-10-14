@@ -6,7 +6,9 @@
 //! the driver's [`QueryBuilder`] (`$1` on Postgres, `?` elsewhere), and every
 //! value is bound, never interpolated.
 
-use crate::{BindValues, Columns};
+#[cfg(feature = "merge-patch")]
+use crate::AssignmentsTarget;
+use crate::{BindValues, Columns, ConditionsTarget, OrderByTarget, PageTarget};
 use queryweave::{
     Conditions, FilterCondition, FilterOperator, SortDirectionModel, SortKey, SortKeys, Value,
 };
@@ -125,53 +127,62 @@ fn push_condition<C: Columns + ?Sized, DB: BindValues>(
     query_builder.push(" ");
 }
 
-/// See [`Columns::push_conditions`].
-pub fn push_conditions<C: Columns + ?Sized, DB: BindValues, M>(
-    query_builder: &mut QueryBuilder<'_, DB>,
-    conditions: Conditions<M>,
-    separator: &str,
-) {
-    for (index, condition) in conditions.into_iter().enumerate() {
-        if index > 0 {
-            query_builder.push(format!("{separator} "));
+impl<DB: BindValues> ConditionsTarget for QueryBuilder<'_, DB> {
+    fn write_where(&mut self) {
+        self.push("WHERE ");
+    }
+
+    fn write_conditions<C: Columns + ?Sized, M>(
+        &mut self,
+        conditions: Conditions<M>,
+        separator: &str,
+    ) {
+        for (index, condition) in conditions.into_iter().enumerate() {
+            if index > 0 {
+                self.push(format!("{separator} "));
+            }
+            push_condition::<C, DB>(self, condition);
         }
-        push_condition::<C, DB>(query_builder, condition);
     }
 }
 
-/// See [`Columns::push_order_by`].
-pub fn push_order_by<C: Columns + ?Sized, DB: BindValues, M>(
-    query_builder: &mut QueryBuilder<'_, DB>,
-    sort_keys: SortKeys<M>,
-) {
-    if sort_keys.is_empty() {
-        return;
-    }
+impl<DB: BindValues> OrderByTarget for QueryBuilder<'_, DB> {
+    fn write_order_by<C: Columns + ?Sized, M>(&mut self, sort_keys: SortKeys<M>) {
+        if sort_keys.is_empty() {
+            return;
+        }
 
-    let order_by = sort_keys
-        .into_iter()
-        .map(|SortKey { field, direction }| {
-            format!("{} {}", column::<C>(field), sql_direction(direction))
-        })
-        .collect::<Vec<_>>()
-        .join(", ");
-    query_builder.push(format!("ORDER BY {order_by} "));
+        let order_by = sort_keys
+            .into_iter()
+            .map(|SortKey { field, direction }| {
+                format!("{} {}", column::<C>(field), sql_direction(direction))
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        self.push(format!("ORDER BY {order_by} "));
+    }
 }
 
-/// See [`Columns::push_assignments`].
 #[cfg(feature = "merge-patch")]
-pub fn push_assignments<'qb, 'args, C: Columns + ?Sized, DB: BindValues, M>(
-    query_builder: &'qb mut QueryBuilder<'args, DB>,
-    assignments: FieldValues<M>,
-) -> Separated<'qb, 'args, DB, &'static str> {
-    let mut separated = query_builder.separated(", ");
+impl<'args, DB: BindValues> AssignmentsTarget for QueryBuilder<'args, DB> {
+    type Assignments<'target>
+        = Separated<'target, 'args, DB, &'static str>
+    where
+        Self: 'target;
 
-    for FieldValue { field, value } in assignments {
-        separated.push(format!("{} = ", column::<C>(field)));
-        DB::push_bind_value_unseparated(&mut separated, value);
+    fn write_assignments<C: Columns + ?Sized, M>(
+        &mut self,
+        assignments: FieldValues<M>,
+    ) -> Self::Assignments<'_> {
+        let mut separated = self.separated(", ");
+
+        for FieldValue { field, value } in assignments {
+            separated.push(format!("{} = ", column::<C>(field)));
+            DB::push_bind_value_unseparated(&mut separated, value);
+        }
+
+        separated
     }
-
-    separated
 }
 
 /// The row offset of page `page` (0 based) of `page_size` rows, saturated at
@@ -181,21 +192,25 @@ fn offset(page: u32, page_size: u32) -> i64 {
     i64::try_from(u64::from(page) * u64::from(page_size)).unwrap_or(i64::MAX)
 }
 
-/// Push a `LIMIT page_size OFFSET page * page_size` clause, binding both, when
-/// both a page and a page size are requested; nothing otherwise.
-pub fn push_page<DB: BindValues>(
-    query_builder: &mut QueryBuilder<'_, DB>,
-    page: Option<u32>,
-    page_size: Option<u32>,
-) {
-    let (Some(page), Some(page_size)) = (page, page_size) else {
-        return;
-    };
+impl<DB: BindValues> PageTarget for QueryBuilder<'_, DB> {
+    fn write_page(&mut self, page: Option<u32>, page_size: Option<u32>) {
+        let (Some(page), Some(page_size)) = (page, page_size) else {
+            return;
+        };
 
-    query_builder.push("LIMIT ");
-    DB::push_bind_value(query_builder, Value::I64(Some(i64::from(page_size))));
-    query_builder.push(" OFFSET ");
-    DB::push_bind_value(query_builder, Value::I64(Some(offset(page, page_size))));
+        self.push("LIMIT ");
+        DB::push_bind_value(self, Value::I64(Some(i64::from(page_size))));
+        self.push(" OFFSET ");
+        DB::push_bind_value(self, Value::I64(Some(offset(page, page_size))));
+    }
+}
+
+/// Write a `LIMIT page_size OFFSET page * page_size` clause, binding both,
+/// when both a page and a page size are requested; nothing otherwise.
+///
+/// See [`PageTarget::write_page`].
+pub fn push_page<Q: PageTarget + ?Sized>(query: &mut Q, page: Option<u32>, page_size: Option<u32>) {
+    query.write_page(page, page_size);
 }
 
 #[cfg(test)]

@@ -22,38 +22,35 @@ pub fn code_gen(
         #runtime::assert_columns!(#columns, <#inner_ty as #runtime::PersistedFields>::FIELD_NAMES);
 
         impl #runtime::AppendToQuery for #name {
-            fn append_to_query<DB, F>(
-                &self,
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                privileged_guard_option: Option<F>,
-            ) where
-                DB: #runtime::BindValues,
-                F: FnOnce(&mut #runtime::QueryBuilder<'_, DB>, &Self) {
-                    fn start_building_where_clause_if_has_options<DB: #runtime::BindValues>(
-                        query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                        query: &#inner_ty,
+            fn append_to_query<Q, F>(&self, query: &mut Q, privileged_guard_option: Option<F>)
+            where
+                Q: #runtime::ConditionsTarget + #runtime::OrderByTarget + #runtime::PageTarget,
+                F: FnOnce(&mut Q, &Self) {
+                    fn start_building_where_clause_if_has_options<Q: #runtime::ConditionsTarget>(
+                        query: &mut Q,
+                        inner: &#inner_ty,
                     ) {
-                        if query.and.has_options() {
-                            query_builder.push("WHERE ");
+                        if inner.and.has_options() {
+                            #runtime::ConditionsTarget::write_where(query);
 
-                            let wrapper = #with_separator_wrapper_ident(query.and.clone());
-                            #runtime::AppendToQueryWithSeparator::append_to_query(&wrapper, query_builder, "AND");
+                            let wrapper = #with_separator_wrapper_ident(inner.and.clone());
+                            #runtime::AppendToQueryWithSeparator::append_to_query(&wrapper, query, "AND");
                         }
                     }
-                    fn build_clauses_after_where_clause<DB: #runtime::BindValues>(
-                        query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                        query: &#inner_ty,
+                    fn build_clauses_after_where_clause<Q: #runtime::OrderByTarget + #runtime::PageTarget>(
+                        query: &mut Q,
+                        inner: &#inner_ty,
                     ) {
-                        <#columns as #runtime::Columns>::push_order_by(query_builder, query.sort_keys());
-                        #runtime::push_page(query_builder, query.page, query.page_size);
+                        <#columns as #runtime::Columns>::push_order_by(query, inner.sort_keys());
+                        #runtime::push_page(query, inner.page, inner.page_size);
                     }
-                    start_building_where_clause_if_has_options(query_builder, &self.0);
+                    start_building_where_clause_if_has_options(query, &self.0);
 
                     if let Some(function) = privileged_guard_option {
-                        function(query_builder, &self);
+                        function(query, &self);
                     }
 
-                    build_clauses_after_where_clause(query_builder, &self.0);
+                    build_clauses_after_where_clause(query, &self.0);
                 }
         }
 
@@ -65,15 +62,12 @@ pub fn code_gen(
             /// `privileged_guard_option` between the filters and the sorting.
             ///
             /// See the `AppendToQuery` trait's `append_to_query`.
-            pub fn append_to_query<DB, F>(
-                &self,
-                query_builder: &mut #runtime::QueryBuilder<'_, DB>,
-                privileged_guard_option: Option<F>,
-            ) where
-                DB: #runtime::BindValues,
-                F: FnOnce(&mut #runtime::QueryBuilder<'_, DB>, &Self),
+            pub fn append_to_query<Q, F>(&self, query: &mut Q, privileged_guard_option: Option<F>)
+            where
+                Q: #runtime::ConditionsTarget + #runtime::OrderByTarget + #runtime::PageTarget,
+                F: FnOnce(&mut Q, &Self),
             {
-                <Self as #runtime::AppendToQuery>::append_to_query(self, query_builder, privileged_guard_option);
+                <Self as #runtime::AppendToQuery>::append_to_query(self, query, privileged_guard_option);
             }
         }
     }
