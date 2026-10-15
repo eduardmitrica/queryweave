@@ -337,10 +337,13 @@ merge patch derives and their runtime (`Patch`, `PatchField`, `PatchKind`,
 `ChangeSet`, `ChangedFields`, `MergePatchNullableFields`, `NullableFields`,
 `push_assignments`). Unlike an integration, gating a derive is safe as a
 Cargo feature: unification only ever adds derives, never changes what an
-existing derive generates. `Columns` emits `push_assignments` only when
-`queryweave-codegen` has the feature, since its generated code cannot test
-`queryweave-sql`'s features. `scripts/check.sh` checks the crates
-build without it.
+existing derive generates. `Columns` always emits `push_assignments` (and a
+Diesel entity's `diesel_changeset`), inside
+`queryweave_sql::__private::if_merge_patch!`, the same kind of passthrough as
+`if_diesel!`: they name `queryweave-sql`'s merge-patch items, so what decides
+is that crate's feature, not the derive's (a project may keep the derives'
+default features and turn `queryweave-sql`'s off). `scripts/check.sh` checks
+the crates build without it, and the gate's UI case without it.
 
 `queryweave-sql`'s `sqlx` feature (default) is its sqlx backend (see the
 persistence layer above); `scripts/check.sh` checks the crate with and

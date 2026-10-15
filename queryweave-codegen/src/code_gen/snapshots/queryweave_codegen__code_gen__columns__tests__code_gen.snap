@@ -44,25 +44,18 @@ impl Order {
         const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
         ::queryweave_sql::OrderByTarget::write_order_by::<Self, M>(query, sort_keys);
     }
-    /// Push `column = value` assignments of the model `M` (a `MergePatch`
-    /// model's `changed_values`) for an `UPDATE … SET`, comma separated,
-    /// returning what the query gives to add more (for sqlx, the
-    /// separated builder).
-    ///
-    /// See the `Columns` trait's `push_assignments`.
-    pub fn push_assignments<Q, M>(
-        query: &mut Q,
-        assignments: ::queryweave_sql::FieldValues<M>,
-    ) -> <Q as ::queryweave_sql::AssignmentsTarget>::Assignments<'_>
-    where
-        Q: ::queryweave_sql::AssignmentsTarget,
-        M: ::queryweave_sql::PersistedFields,
-    {
-        const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
-        ::queryweave_sql::AssignmentsTarget::write_assignments::<
-            Self,
-            M,
-        >(query, assignments)
+    ::queryweave_sql::__private::if_merge_patch! {
+        #[doc = r" Push `column = value` assignments of the model `M` (a `MergePatch`"]
+        #[doc = r" model's `changed_values`) for an `UPDATE … SET`, comma separated,"]
+        #[doc = r" returning what the query gives to add more (for sqlx, the"] #[doc =
+        r" separated builder)."] #[doc = r""] #[doc =
+        r" See the `Columns` trait's `push_assignments`."] pub fn push_assignments < Q, M
+        > (query : & mut Q, assignments : ::queryweave_sql::FieldValues < M >,) -> < Q as
+        ::queryweave_sql::AssignmentsTarget > ::Assignments < '_ > where Q :
+        ::queryweave_sql::AssignmentsTarget, M : ::queryweave_sql::PersistedFields, {
+        const { ::queryweave_sql::__private::assert_model_columns:: < Self, M > () };
+        ::queryweave_sql::AssignmentsTarget::write_assignments:: < Self, M > (query,
+        assignments) }
     }
 }
 const _: fn(domain::models::order::OrderModel) = |value| {

@@ -169,7 +169,9 @@ each, all and none.
   read a runtime crate's features (and a `#[cfg]` in its output tests the user's crate's), so code
   needing one goes inside a hidden `#[macro_export]` passthrough of that crate, defined once per state
   of the feature and reached through `__private` (`queryweave_sql::__private::if_diesel!`, which keeps
-  the Diesel methods `Columns` generates only with the `diesel` feature; `tests/ui/features/if_diesel.rs`).
+  the Diesel methods `Columns` generates only with the `diesel` feature, and `if_merge_patch!`, which
+  keeps its merge-patch writes only with `queryweave-sql`'s `merge-patch`, whatever the derive's;
+  `tests/ui/features/if_{diesel,merge_patch}.rs`).
 - A derive used by several layers is one derive with roles (`Filters`), never one copy per layer.
 
 ### Generated code and paths

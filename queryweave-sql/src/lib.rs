@@ -71,6 +71,7 @@ pub use sqlx::{QueryBuilder, query_builder::Separated};
 #[doc(hidden)]
 pub mod __private {
     pub use crate::__if_diesel as if_diesel;
+    pub use crate::__if_merge_patch as if_merge_patch;
     pub use crate::columns::assert_model_columns;
     pub use queryweave::__private::*;
 }
@@ -97,6 +98,31 @@ macro_rules! __if_diesel {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __if_diesel {
+    ($($items:tt)*) => {};
+}
+
+/// Not public API: the merge-patch writes `#[derive(Columns)]` generates
+/// (`push_assignments`, and a Diesel entity's `diesel_changeset`), let
+/// through only when this crate has its `merge-patch` feature.
+///
+/// They name this crate's merge-patch items (`AssignmentsTarget`,
+/// `FieldValues`), which exist only with the feature; the derive's own
+/// `merge-patch` feature is another crate's, so it cannot tell. Like
+/// `__if_diesel`, defined once per state of the feature.
+#[cfg(feature = "merge-patch")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __if_merge_patch {
+    ($($items:tt)*) => {
+        $($items)*
+    };
+}
+
+/// See the other definition: without the `merge-patch` feature, nothing.
+#[cfg(not(feature = "merge-patch"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __if_merge_patch {
     ($($items:tt)*) => {};
 }
 

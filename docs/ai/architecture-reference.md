@@ -157,8 +157,9 @@ flag_option}`; every link is an option of the derive's own attribute
   does not fit is `ValueMismatch`. No target trait (Diesel builders are by
   value).
 - `merge-patch` (default) in every queryweave crate gates the merge patch
-  derives and runtime; `Columns` emits `push_assignments` only with
-  `queryweave-codegen`'s feature. Filters-only builds are checked by
+  derives and runtime; `Columns` always emits `push_assignments` /
+  `diesel_changeset`, inside `__private::if_merge_patch!` (the runtime's
+  feature decides, not the derive's). Filters-only builds are checked by
   `scripts/check.sh`.
 - Every derive's output ends with `require_version(MAJOR, MINOR)` in its
   runtime (`steps::expand`, `Derive::runtime`); pre-1.0 minors must match,

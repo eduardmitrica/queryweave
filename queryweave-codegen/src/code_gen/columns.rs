@@ -39,9 +39,10 @@ pub fn code_gen(
             .map(|column| &column.domain_field),
     );
 
-    // The `SET` writer, with merge patches only (it writes their data).
-    let assignments = if cfg!(feature = "merge-patch") {
-        quote! {
+    // The `SET` writer, with merge patches only (it writes their data): the
+    // runtime's gate, since it names the runtime's merge-patch items.
+    let assignments = quote! {
+        #runtime::__private::if_merge_patch! {
             /// Push `column = value` assignments of the model `M` (a `MergePatch`
             /// model's `changed_values`) for an `UPDATE … SET`, comma separated,
             /// returning what the query gives to add more (for sqlx, the
@@ -60,8 +61,6 @@ pub fn code_gen(
                 #runtime::AssignmentsTarget::write_assignments::<Self, M>(query, assignments)
             }
         }
-    } else {
-        proc_macro2::TokenStream::new()
     };
 
     quote! {
@@ -177,11 +176,7 @@ fn diesel_items(
         runtime,
         &[filter_bounds.as_slice(), order_bounds.as_slice()].concat(),
     );
-    let changeset = if cfg!(feature = "merge-patch") {
-        diesel_changeset(parsed, table, runtime)
-    } else {
-        proc_macro2::TokenStream::new()
-    };
+    let changeset = diesel_changeset(parsed, table, runtime);
 
     quote! {
         // The model's data as Diesel expressions on this entity's table, for
@@ -315,7 +310,8 @@ fn diesel_entity(
 }
 
 /// The changeset method of a Diesel entity: one `Option` slot per column,
-/// filled by its index.
+/// filled by its index; through the runtime's `if_merge_patch!`, since it
+/// names the runtime's merge-patch items.
 fn diesel_changeset(
     parsed: &crate::parse::columns::Parsed<'_>,
     table: &syn::Path,
@@ -329,6 +325,7 @@ fn diesel_changeset(
     });
 
     quote! {
+        #runtime::__private::if_merge_patch! {
         /// The `MergePatch` model `M`'s changed values (its `changed_values`)
         /// as a Diesel changeset of this entity's table: one `Option` per
         /// column, `None` for the unchanged ones, for
@@ -369,6 +366,7 @@ fn diesel_changeset(
                 }
             }
             ::core::result::Result::Ok(changeset)
+        }
         }
     }
 }

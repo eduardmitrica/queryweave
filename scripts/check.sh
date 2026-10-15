@@ -71,6 +71,8 @@ cargo clippy -p queryweave -p queryweave-api -p queryweave-sql -p queryweave-cod
   --lib --no-default-features -- -D warnings
 cargo clippy -p queryweave-sql --lib --no-default-features \
   --features sqlx,sea-query,diesel-postgres,diesel-mysql,diesel-sqlite -- -D warnings
+# `queryweave-sql`'s merge-patch gate (`if_merge_patch!`) with the feature off.
+cargo nextest run -p queryweave-sql --no-default-features --ignore-default-filter -E 'test(/ui_tests/)'
 
 if [ "$mode" = ci ] || [ "$mode" = all ]; then
   step "database tests (Docker)"

@@ -26,5 +26,14 @@ mod ui_tests {
                 t.compile_fail(case);
             }
         }
+
+        // The merge-patch gate's failure names no backend: checked whenever
+        // the feature is off.
+        let case = "tests/ui/features/if_merge_patch.rs";
+        if cfg!(feature = "merge-patch") {
+            t.pass(case);
+        } else {
+            t.compile_fail(case);
+        }
     }
 }

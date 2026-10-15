@@ -121,72 +121,37 @@ impl Order {
             })
             .collect()
     }
-    /// The `MergePatch` model `M`'s changed values (its `changed_values`)
-    /// as a Diesel changeset of this entity's table: one `Option` per
-    /// column, `None` for the unchanged ones, for
-    /// `diesel::update(..).set(..)`.
-    ///
-    /// Fails to build unless every field of `M` has a column on the table,
-    /// and unless every column's SQL type takes a domain value (mark a
-    /// column storing no domain field `#[columns(skip)]`).
-    ///
-    /// # Errors
-    ///
-    /// The `ValueMismatch` of a value that does not fit its column's SQL
-    /// type (or a `NULL` for a `NOT NULL` column).
-    pub fn diesel_changeset<M>(
-        assignments: ::queryweave_sql::FieldValues<M>,
-    ) -> ::core::result::Result<
-        (
-            ::core::option::Option<
-                ::queryweave_sql::diesel::Assignment<crate::schema::orders::delivered_at>,
-            >,
-            ::core::option::Option<
-                ::queryweave_sql::diesel::Assignment<crate::schema::orders::order_number>,
-            >,
-        ),
-        ::queryweave_sql::diesel::ValueMismatch,
-    >
-    where
-        M: ::queryweave_sql::PersistedFields,
-        crate::schema::orders::delivered_at: ::queryweave_sql::diesel::AssignColumn,
-        crate::schema::orders::order_number: ::queryweave_sql::diesel::AssignColumn,
-    {
-        const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
-        let mut changeset = (
-            ::core::option::Option::<
-                ::queryweave_sql::diesel::Assignment<crate::schema::orders::delivered_at>,
-            >::None,
-            ::core::option::Option::<
-                ::queryweave_sql::diesel::Assignment<crate::schema::orders::order_number>,
-            >::None,
-        );
-        for field_value in assignments {
-            match field_value.field {
-                "delivery_date" => {
-                    changeset.0 = ::core::option::Option::Some(
-                        ::queryweave_sql::diesel::AssignColumn::assignment(
-                            crate::schema::orders::delivered_at,
-                            field_value,
-                        )?,
-                    );
-                }
-                "number" => {
-                    changeset.1 = ::core::option::Option::Some(
-                        ::queryweave_sql::diesel::AssignColumn::assignment(
-                            crate::schema::orders::order_number,
-                            field_value,
-                        )?,
-                    );
-                }
-                field => {
-                    return ::core::result::Result::Err(::queryweave_sql::diesel::ValueMismatch {
-                        field,
-                    });
-                }
-            }
-        }
-        ::core::result::Result::Ok(changeset)
+    ::queryweave_sql::__private::if_merge_patch! {
+        #[doc = r" The `MergePatch` model `M`'s changed values (its `changed_values`)"]
+        #[doc = r" as a Diesel changeset of this entity's table: one `Option` per"] #[doc
+        = r" column, `None` for the unchanged ones, for"] #[doc =
+        r" `diesel::update(..).set(..)`."] #[doc = r""] #[doc =
+        r" Fails to build unless every field of `M` has a column on the table,"] #[doc =
+        r" and unless every column's SQL type takes a domain value (mark a"] #[doc =
+        r" column storing no domain field `#[columns(skip)]`)."] #[doc = r""] #[doc =
+        r" # Errors"] #[doc = r""] #[doc =
+        r" The `ValueMismatch` of a value that does not fit its column's SQL"] #[doc =
+        r" type (or a `NULL` for a `NOT NULL` column)."] pub fn diesel_changeset < M >
+        (assignments : ::queryweave_sql::FieldValues < M >,) -> ::core::result::Result <
+        (::core::option::Option < ::queryweave_sql::diesel::Assignment < crate
+        ::schema::orders::delivered_at >>, ::core::option::Option <
+        ::queryweave_sql::diesel::Assignment < crate ::schema::orders::order_number >>,),
+        ::queryweave_sql::diesel::ValueMismatch, > where M :
+        ::queryweave_sql::PersistedFields, crate ::schema::orders::delivered_at :
+        ::queryweave_sql::diesel::AssignColumn, crate ::schema::orders::order_number :
+        ::queryweave_sql::diesel::AssignColumn, { const {
+        ::queryweave_sql::__private::assert_model_columns:: < Self, M > () }; let mut
+        changeset = (::core::option::Option:: < ::queryweave_sql::diesel::Assignment <
+        crate ::schema::orders::delivered_at >, > ::None, ::core::option::Option:: <
+        ::queryweave_sql::diesel::Assignment < crate ::schema::orders::order_number >, >
+        ::None,); for field_value in assignments { match field_value.field {
+        "delivery_date" => { changeset.0 =
+        ::core::option::Option::Some(::queryweave_sql::diesel::AssignColumn::assignment(crate
+        ::schema::orders::delivered_at, field_value) ?,); }, "number" => { changeset.1 =
+        ::core::option::Option::Some(::queryweave_sql::diesel::AssignColumn::assignment(crate
+        ::schema::orders::order_number, field_value) ?,); }, field => return
+        ::core::result::Result::Err(::queryweave_sql::diesel::ValueMismatch { field }), }
+        } ::core::result::Result::Ok(changeset) }
     }
 }
 impl<'q, DB> ::queryweave_sql::diesel::Entity<'q, DB> for Order
