@@ -1,0 +1,47 @@
+error[E0277]: queryweave cannot write a domain value to a column of SQL type `diesel::sql_types::Binary`
+  --> tests/ui/columns/fail/diesel_column_of_unsupported_type.rs:28:5
+   |
+28 |     id: Vec<u8>,
+   |     ^^ no `queryweave_sql::diesel::ColumnValue` for this SQL type
+   |
+   = help: the trait `ColumnValue` is not implemented for `diesel::sql_types::Binary`
+   = note: mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type
+   = help: the following other types implement trait `ColumnValue`:
+             BigInt
+             Date
+             Nullable<ST>
+             Time
+             Timestamp
+             Timestamptz
+             diesel::sql_types::Bool
+             diesel::sql_types::Double
+           and $N others
+   = note: required for `columns::id` to implement `AssignColumn`
+
+error[E0277]: queryweave cannot compare a domain value with a column of SQL type `diesel::sql_types::Binary`
+  --> tests/ui/columns/fail/diesel_column_of_unsupported_type.rs:33:40
+   |
+33 |     let _ = Order::diesel_conditions::<diesel::sqlite::Sqlite, _>(
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^ no `queryweave_sql::diesel::Comparison` for this SQL type
+   |
+   = help: the trait `Comparison<'_, columns::id, table, Sqlite>` is not implemented for `diesel::sql_types::Binary`
+   = note: mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type
+   = help: the following other types implement trait `Comparison<'a, C, QS, DB>`:
+             BigInt
+             Date
+             Time
+             Timestamp
+             Timestamptz
+             diesel::sql_types::Bool
+             diesel::sql_types::Double
+             diesel::sql_types::Float
+           and $N others
+   = note: required for `columns::id` to implement `FilterColumn<'_, table, Sqlite>`
+note: required by a bound in `Order::diesel_conditions`
+  --> tests/ui/columns/fail/diesel_column_of_unsupported_type.rs:28:5
+   |
+24 | #[derive(diesel::Queryable, diesel::Selectable, Columns)]
+   |                                                 ------- required by a bound in this associated function
+...
+28 |     id: Vec<u8>,
+   |     ^^ required by this bound in `Order::diesel_conditions`

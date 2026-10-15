@@ -70,8 +70,16 @@ Filterable>::Query`: coherence rejects it, overlapping `impl<T> From<T> for T`).
 
 - Domain field names become column names only through an entity deriving
   `Columns` (`#[domain_field(name)]` where they differ; `#[sqlx(rename)]` /
-  `#[sea_orm(column_name)]`, which must agree; `#[sqlx(skip / flatten)]` /
-  `#[sea_orm(ignore)]` are no columns; either's `rename_all` is rejected).
+  `#[sea_orm(column_name)]` / `#[diesel(column_name)]`, which must agree;
+  `#[sqlx(skip / flatten)]` / `#[sea_orm(ignore)]` /
+  `#[diesel(embed / select_expression)]` / `#[columns(skip)]` are no columns;
+  `rename_all` is rejected). `#[diesel(table_name)]` adds `diesel_conditions` /
+  `diesel_order_by` / `diesel_changeset` (per-column `match`, per-column bounds
+  spanned to the field), and `diesel::Entity<'q, DB>` (its `Table`, `conditions`,
+  `order_by`, under the same bounds), inside `__private::if_diesel!`. Through
+  `Entity`, the wrappers get `diesel_condition` (separator) and
+  `diesel_apply_to` (query: `diesel::apply` on a `diesel::BoxedQuery`), also
+  inside `if_diesel!`; no guard closure (the caller `filter`s the query).
 - SQL for a model's data is written only through the entity's `push_*`
   methods, taking `ModelData<Model, _>` (data cannot be paired with another
   model); they check column coverage at build time (post-monomorphization),
@@ -94,7 +102,9 @@ Filterable>::Query`: coherence rejects it, overlapping `impl<T> From<T> for T`).
 
 - A mirror's integrations are flags of `#[filters(...)]`, never Cargo features
   of a derive crate. Runtime-crate features only add trait impls to that
-  crate's types.
+  crate's types, or let generated code through a per-feature passthrough
+  macro of that crate (`__private::if_diesel!`), since a derive cannot read
+  them.
 - Each integration is an `integrations::Integration` impl; the available ones
   are `Conventions::integrations()` (default `BUILT_IN`: `serde`, `utoipa`,
   `validator`, `schemars`, `garde`), whose order is the generated order.
@@ -142,7 +152,7 @@ flag_option}`; every link is an option of the derive's own attribute
 - `diesel` (+ `diesel-postgres` / `-mysql` / `-sqlite`, mirroring Diesel's
   backend features for date-time SQL types) is the public
   `queryweave_sql::diesel` module (`backend/diesel.rs`): `condition`, `join`,
-  `ordering`, `page`, `assignment` over typed Diesel columns, dispatching on the
+  `ordering`, `page`, `assignment`, `apply` over typed Diesel columns, dispatching on the
   column's SQL type (`ValueSqlType`, `Comparison`, `ColumnValue`); a value that
   does not fit is `ValueMismatch`. No target trait (Diesel builders are by
   value).

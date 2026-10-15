@@ -36,3 +36,20 @@ impl OrdersFilterOptionsModelWrapper {
     crate ::entities::order::Order, < OrdersFilterOptionsModel as
     ::queryweave_sql::PersistedFields > ::FIELD_NAMES
 );
+::queryweave_sql::__private::if_diesel! {
+    impl OrdersFilterOptionsModelWrapper { #[doc =
+    r" The set filters as one Diesel condition on the entity's"] #[doc =
+    r" table, joined by `junction`, for a boxed query's `filter`"] #[doc =
+    r" (or `or_filter`); `None` when none are set."] #[doc = r""] #[doc =
+    r" Builds only for a Diesel entity (one deriving `Columns`"] #[doc =
+    r" with `#[diesel(table_name = ...)]`)."] #[doc = r""] #[doc = r" # Errors"] #[doc =
+    r""] #[doc = r" The `ValueMismatch` of a value that does not fit its"] #[doc =
+    r" column's SQL type."] pub fn diesel_condition < 'q, DB > (& self, junction :
+    ::queryweave_sql::Junction,) -> ::core::result::Result < ::core::option::Option <
+    ::queryweave_sql::diesel::BoxedCondition < 'q, < crate ::entities::order::Order as
+    ::queryweave_sql::diesel::Entity < 'q, DB >> ::Table, DB >, >,
+    ::queryweave_sql::diesel::ValueMismatch, > where crate ::entities::order::Order :
+    ::queryweave_sql::diesel::Entity < 'q, DB >, { < crate ::entities::order::Order as
+    ::queryweave_sql::diesel::Entity < 'q, DB >> ::conditions(self.0.conditions(),
+    junction) } }
+}

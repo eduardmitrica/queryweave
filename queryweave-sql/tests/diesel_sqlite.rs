@@ -16,8 +16,8 @@ use queryweave::{
 };
 use queryweave_sql::Junction;
 use queryweave_sql::diesel::{
-    BoxedCondition, BoxedOrdering, ValueMismatch, ValueOf, assignment, condition, join, ordering,
-    page,
+    BoxedCondition, BoxedOrdering, ValueMismatch, ValueOf, apply, assignment, condition, join,
+    ordering, page,
 };
 
 /// The schema, as Diesel's CLI would print it.
@@ -134,24 +134,24 @@ fn ids_where(
     sort_keys: Vec<SortKey>,
     page_request: (Option<u32>, Option<u32>),
 ) -> Vec<i32> {
-    let mut query = coupons::table.select(coupons::id).into_boxed();
-
     let conditions = conditions
         .into_iter()
         .map(Coupons::condition)
         .collect::<Result<Vec<_>, _>>()
         .unwrap();
-    if let Some(condition) = join(conditions, Junction::And) {
-        query = query.filter(condition);
-    }
-    for sort_key in sort_keys {
-        query = query.then_order_by(Coupons::ordering(sort_key).unwrap());
-    }
-    if let Some((limit, offset)) = page(page_request.0, page_request.1) {
-        query = query.limit(limit).offset(offset);
-    }
+    let orderings = sort_keys
+        .into_iter()
+        .map(|sort_key| Coupons::ordering(sort_key).unwrap())
+        .collect();
 
-    query.load(connection).unwrap()
+    apply(
+        coupons::table.select(coupons::id).into_boxed(),
+        join(conditions, Junction::And),
+        orderings,
+        page(page_request.0, page_request.1),
+    )
+    .load(connection)
+    .unwrap()
 }
 
 const fn filter(field: &'static str, operator: FilterOperator, value: Value) -> FilterCondition {

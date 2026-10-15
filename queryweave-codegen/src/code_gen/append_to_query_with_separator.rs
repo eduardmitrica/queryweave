@@ -12,6 +12,7 @@ pub fn code_gen(
         inner_ty,
     } = parsed;
     let columns = mapping_paths.columns;
+    let diesel = diesel(name, &columns, runtime);
 
     quote! {
         impl #runtime::AppendToQueryWithSeparator for #name {
@@ -38,6 +39,47 @@ pub fn code_gen(
         // entity. `Columns::push_conditions` checks it too, once instantiated; this
         // item reports it in `cargo check` as well.
         #runtime::assert_columns!(#columns, <#inner_ty as #runtime::PersistedFields>::FIELD_NAMES);
+
+        #diesel
+    }
+}
+
+/// The wrapper's Diesel method: the set filters as one Diesel condition, for
+/// an entity with `#[diesel(table_name)]` (its `diesel::Entity`), let through
+/// the runtime's `if_diesel!` like the entity's own Diesel methods.
+fn diesel(name: &syn::Ident, columns: &syn::Path, runtime: &syn::Path) -> proc_macro2::TokenStream {
+    let diesel = quote! { #runtime::diesel };
+
+    quote! {
+        #runtime::__private::if_diesel! {
+            impl #name {
+                /// The set filters as one Diesel condition on the entity's
+                /// table, joined by `junction`, for a boxed query's `filter`
+                /// (or `or_filter`); `None` when none are set.
+                ///
+                /// Builds only for a Diesel entity (one deriving `Columns`
+                /// with `#[diesel(table_name = ...)]`).
+                ///
+                /// # Errors
+                ///
+                /// The `ValueMismatch` of a value that does not fit its
+                /// column's SQL type.
+                pub fn diesel_condition<'q, DB>(
+                    &self,
+                    junction: #runtime::Junction,
+                ) -> ::core::result::Result<
+                    ::core::option::Option<
+                        #diesel::BoxedCondition<'q, <#columns as #diesel::Entity<'q, DB>>::Table, DB>,
+                    >,
+                    #diesel::ValueMismatch,
+                >
+                where
+                    #columns: #diesel::Entity<'q, DB>,
+                {
+                    <#columns as #diesel::Entity<'q, DB>>::conditions(self.0.conditions(), junction)
+                }
+            }
+        }
     }
 }
 

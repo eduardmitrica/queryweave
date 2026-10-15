@@ -2601,8 +2601,10 @@ name = "queryweave-derive"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "diesel",
  "garde",
  "insta",
+ "libsqlite3-sys",
  "pretty_assertions",
  "prettyplease",
  "queryweave",

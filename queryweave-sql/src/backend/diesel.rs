@@ -11,6 +11,9 @@
 //! own Rust type, picked by the column's SQL type through [`ValueSqlType`]: no
 //! SQL is written by hand, and Diesel renders it for each backend.
 //!
+//! The wrappers reach a Diesel entity's methods through [`Entity`], which
+//! `Columns` implements for it, and [`apply`] them to a [`BoxedQuery`].
+//!
 //! A value that does not fit its column's SQL type (a domain field and its
 //! column disagree on the type, or a `NULL` written to a `NOT NULL` column) is
 //! a [`ValueMismatch`] error, not a panic.
@@ -23,12 +26,16 @@ use diesel::expression::TypedExpressionType;
 use diesel::expression::expression_types::NotSelectable;
 use diesel::expression::{AsExpression, BoxableExpression, Expression};
 use diesel::expression_methods::EscapeExpressionMethods;
+use diesel::query_dsl::methods::{FilterDsl, LimitDsl, OffsetDsl, ThenOrderDsl};
 use diesel::sql_types::{self, Bool, IntoNullable, Nullable, SingleValue, SqlType, is_nullable};
 use diesel::{BoolExpressionMethods, ExpressionMethods, NullableExpressionMethods};
 use diesel::{TextExpressionMethods, dsl};
 #[cfg(feature = "merge-patch")]
 use queryweave::FieldValue;
-use queryweave::{FilterCondition, FilterOperator, SortDirectionModel, SortKey, Value};
+use queryweave::{
+    Conditions, FilterCondition, FilterOperator, PersistedFields, SortDirectionModel, SortKey,
+    SortKeys, Value,
+};
 
 /// A filter condition on the table `QS`, boxed for a boxed query's `filter`.
 ///
@@ -195,6 +202,11 @@ impl ColumnValue for sql_types::Text {
 /// Implemented per SQL type, so the code generated for a column is the same
 /// call whatever its type: [`condition`] picks the implementation by the
 /// column's SQL type.
+#[diagnostic::on_unimplemented(
+    message = "queryweave cannot compare a domain value with a column of SQL type `{Self}`",
+    label = "no `queryweave_sql::diesel::Comparison` for this SQL type",
+    note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type"
+)]
 pub trait Comparison<'a, C, QS, DB> {
     /// `column operator value`, the value bound with the column's type; `None`
     /// if the value is of another type, or the operator does not apply.
@@ -363,6 +375,11 @@ pub fn page(page: Option<u32>, page_size: Option<u32>) -> Option<(i64, i64)> {
 
 /// The Rust value a column whose SQL type is `Self` is set to: the SQL type's
 /// Rust type, or an `Option` of it for a nullable column.
+#[diagnostic::on_unimplemented(
+    message = "queryweave cannot write a domain value to a column of SQL type `{Self}`",
+    label = "no `queryweave_sql::diesel::ColumnValue` for this SQL type",
+    note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type"
+)]
 pub trait ColumnValue {
     /// The Rust type.
     type Rust;
@@ -408,11 +425,232 @@ where
     Ok(column.eq(value))
 }
 
+/// A Diesel column a model's filter conditions can compare: one whose SQL
+/// type converts a domain value ([`ValueSqlType`] and [`Comparison`]).
+///
+/// Blanket-implemented over [`condition`]: the code generated for an entity
+/// requires it of every column, so a column of another SQL type is reported
+/// where the conditions are written, naming the column.
+#[diagnostic::on_unimplemented(
+    message = "queryweave cannot filter on the column `{Self}`: its SQL type takes no domain value",
+    label = "a column of a SQL type with no `queryweave_sql::diesel::ValueSqlType`",
+    note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for its SQL type"
+)]
+pub trait FilterColumn<'a, QS, DB>: Sized {
+    /// See [`condition`].
+    ///
+    /// # Errors
+    ///
+    /// See [`condition`].
+    fn condition(
+        self,
+        filter_condition: FilterCondition,
+    ) -> Result<BoxedCondition<'a, QS, DB>, ValueMismatch>;
+}
+
+impl<'a, C, QS, DB> FilterColumn<'a, QS, DB> for C
+where
+    C: Expression,
+    C::SqlType: IntoNullable,
+    <C::SqlType as IntoNullable>::Nullable: NonNull,
+    NonNullSqlType<C>: Comparison<'a, C, QS, DB>,
+{
+    fn condition(
+        self,
+        filter_condition: FilterCondition,
+    ) -> Result<BoxedCondition<'a, QS, DB>, ValueMismatch> {
+        condition(self, filter_condition)
+    }
+}
+
+/// A Diesel column a model's sort keys can order by.
+///
+/// Blanket-implemented over [`ordering`], for every column of the table.
+#[diagnostic::on_unimplemented(
+    message = "queryweave cannot order by the column `{Self}`",
+    note = "mark the entity field of a column storing no domain field `#[columns(skip)]`"
+)]
+pub trait OrderColumn<'a, QS, DB>: Sized {
+    /// See [`ordering`].
+    fn ordering(self, sort_key: SortKey) -> BoxedOrdering<'a, QS, DB>;
+}
+
+impl<'a, C, QS, DB> OrderColumn<'a, QS, DB> for C
+where
+    DB: Backend,
+    C: ExpressionMethods,
+    dsl::Asc<C>: BoxableExpression<QS, DB, SqlType = NotSelectable> + 'a,
+    dsl::Desc<C>: BoxableExpression<QS, DB, SqlType = NotSelectable> + 'a,
+{
+    fn ordering(self, sort_key: SortKey) -> BoxedOrdering<'a, QS, DB> {
+        ordering(self, sort_key)
+    }
+}
+
+/// A Diesel column a model's merge-patch writes can set: one whose SQL type
+/// converts a domain value ([`ColumnValue`]).
+///
+/// Blanket-implemented over [`assignment`].
+#[cfg(feature = "merge-patch")]
+#[diagnostic::on_unimplemented(
+    message = "queryweave cannot write the column `{Self}`: its SQL type takes no domain value",
+    label = "a column of a SQL type with no `queryweave_sql::diesel::ColumnValue`",
+    note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for its SQL type"
+)]
+pub trait AssignColumn: Sized {
+    /// The assignment `column = value`.
+    type Assignment;
+
+    /// See [`assignment`].
+    ///
+    /// # Errors
+    ///
+    /// See [`assignment`].
+    fn assignment(self, field_value: FieldValue) -> Result<Self::Assignment, ValueMismatch>;
+}
+
+#[cfg(feature = "merge-patch")]
+impl<C> AssignColumn for C
+where
+    C: Expression + ExpressionMethods,
+    C::SqlType: SqlType + TypedExpressionType + ColumnValue,
+    ValueOf<C>: AsExpression<C::SqlType>,
+{
+    type Assignment = dsl::Eq<C, ValueOf<C>>;
+
+    fn assignment(self, field_value: FieldValue) -> Result<Self::Assignment, ValueMismatch> {
+        assignment(self, field_value)
+    }
+}
+
+/// The assignment `column = value` of the column `C`: one slot of an entity's
+/// changeset (an `Option` of it, `None` when unchanged).
+#[cfg(feature = "merge-patch")]
+pub type Assignment<C> = <C as AssignColumn>::Assignment;
+
+/// A backend whose conditions on the table `QS` can be joined: every Diesel
+/// backend.
+///
+/// [`join`] as a method, so the code generated for an entity needs this one
+/// bound rather than [`join`]'s.
+pub trait JoinConditions<'a, QS>: Backend + Sized {
+    /// See [`join`].
+    fn join(
+        conditions: impl IntoIterator<Item = BoxedCondition<'a, QS, Self>>,
+        junction: Junction,
+    ) -> Option<BoxedCondition<'a, QS, Self>>;
+}
+
+impl<'a, QS, DB> JoinConditions<'a, QS> for DB
+where
+    QS: 'a,
+    DB: Backend + 'a,
+    dsl::And<BoxedCondition<'a, QS, DB>, BoxedCondition<'a, QS, DB>>:
+        BoxableExpression<QS, DB, SqlType = Nullable<Bool>>,
+    dsl::Or<BoxedCondition<'a, QS, DB>, BoxedCondition<'a, QS, DB>>:
+        BoxableExpression<QS, DB, SqlType = Nullable<Bool>>,
+{
+    fn join(
+        conditions: impl IntoIterator<Item = BoxedCondition<'a, QS, Self>>,
+        junction: Junction,
+    ) -> Option<BoxedCondition<'a, QS, Self>> {
+        join(conditions, junction)
+    }
+}
+
+/// A Diesel entity: one whose columns the model's data can name, implemented
+/// by `#[derive(Columns)]` for an entity with `#[diesel(table_name = ..)]`.
+///
+/// Its methods are the entity's `diesel_conditions` and `diesel_order_by` as
+/// a trait, so the code generated for the wrappers (`AppendToQuery`,
+/// `AppendToQueryWithSeparator`), which knows the entity but not its table,
+/// can name them. `DB` is the backend, `'a` how long the boxed expressions
+/// live.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not a Diesel entity for `{DB}`",
+    label = "no `queryweave_sql::diesel::Entity` for this entity",
+    note = "derive `Columns` on an entity with `#[diesel(table_name = ...)]`, every column of a SQL type queryweave converts (or `#[columns(skip)]`)"
+)]
+pub trait Entity<'a, DB> {
+    /// The entity's table (`table_name::table`).
+    type Table;
+
+    /// The conditions of the model `M`, joined by `junction`, as one
+    /// condition on the table; `None` when there are none.
+    ///
+    /// # Errors
+    ///
+    /// [`ValueMismatch`] if a condition's value does not fit its column's SQL
+    /// type.
+    fn conditions<M: PersistedFields>(
+        conditions: Conditions<M>,
+        junction: Junction,
+    ) -> Result<Option<BoxedCondition<'a, Self::Table, DB>>, ValueMismatch>;
+
+    /// The sort keys of the model `M`, in order, as orderings of the table.
+    fn order_by<M: PersistedFields>(
+        sort_keys: SortKeys<M>,
+    ) -> Vec<BoxedOrdering<'a, Self::Table, DB>>;
+}
+
+/// A boxed query on the table `QS` (`table.into_boxed()`, after any `select`
+/// or `filter`): one taking conditions, orderings, a limit and an offset as
+/// the same type, which [`apply`] adds.
+///
+/// Blanket-implemented for every query that does: Diesel's boxed select
+/// statements.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not a boxed query of the entity's table",
+    label = "not a boxed query",
+    note = "box the query first, with `.into_boxed()`"
+)]
+pub trait BoxedQuery<'a, QS, DB>:
+    FilterDsl<BoxedCondition<'a, QS, DB>, Output = Self>
+    + ThenOrderDsl<BoxedOrdering<'a, QS, DB>, Output = Self>
+    + LimitDsl<Output = Self>
+    + OffsetDsl<Output = Self>
+{
+}
+
+impl<'a, QS, DB, Q> BoxedQuery<'a, QS, DB> for Q where
+    Q: FilterDsl<BoxedCondition<'a, QS, DB>, Output = Self>
+        + ThenOrderDsl<BoxedOrdering<'a, QS, DB>, Output = Self>
+        + LimitDsl<Output = Self>
+        + OffsetDsl<Output = Self>
+{
+}
+
+/// The boxed query `query` with the condition (its `filter`, so `AND`ed to
+/// the query's own), the orderings after its own (`then_order_by`), and the
+/// page (`limit` and `offset`, from [`page`]).
+#[must_use]
+pub fn apply<'a, Q, QS, DB>(
+    query: Q,
+    condition: Option<BoxedCondition<'a, QS, DB>>,
+    orderings: Vec<BoxedOrdering<'a, QS, DB>>,
+    page: Option<(i64, i64)>,
+) -> Q
+where
+    Q: BoxedQuery<'a, QS, DB>,
+{
+    let mut query = match condition {
+        Some(condition) => FilterDsl::filter(query, condition),
+        None => query,
+    };
+    for ordering in orderings {
+        query = ThenOrderDsl::then_order_by(query, ordering);
+    }
+    match page {
+        Some((limit, offset)) => OffsetDsl::offset(LimitDsl::limit(query, limit), offset),
+        None => query,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "merge-patch")]
     use super::assignment;
-    use super::{ValueMismatch, condition, join, ordering, page};
+    use super::{ValueMismatch, apply, condition, join, ordering, page};
     use crate::Junction;
     use diesel::mysql::Mysql;
     use diesel::pg::Pg;
@@ -624,6 +862,45 @@ mod tests {
         );
         assert_eq!(page(None, Some(10)), None);
         assert_eq!(page(Some(1), None), None);
+    }
+
+    // `apply` adds a condition after the query's own, orderings after its
+    // own, and a page; nothing it is not given.
+    #[test]
+    fn apply_adds_the_condition_orderings_and_page() {
+        let capacity = filter("capacity", FilterOperator::LessThan, Value::I32(Some(9)));
+        let number = SortKey {
+            field: "number",
+            direction: SortDirectionModel::Ascending,
+        };
+        let query = orders::table
+            .select(orders::id)
+            .into_boxed::<Pg>()
+            .filter(orders::id.gt(0))
+            .order_by(orders::id);
+
+        let query = apply(
+            query,
+            Some(condition(orders::capacity, capacity).unwrap()),
+            vec![ordering(orders::number, number)],
+            page(Some(1), Some(10)),
+        );
+
+        assert_eq!(
+            diesel::debug_query::<Pg, _>(&query).to_string(),
+            r#"SELECT "orders"."id" FROM "orders" WHERE (("orders"."id" > $1) AND ("orders"."capacity" < $2)) ORDER BY "orders"."id", "orders"."number" ASC LIMIT $3 OFFSET $4 -- binds: [0, Some(9), 10, 10]"#
+        );
+
+        let untouched = apply(
+            orders::table.select(orders::id).into_boxed::<Pg>(),
+            None,
+            Vec::new(),
+            None,
+        );
+        assert_eq!(
+            diesel::debug_query::<Pg, _>(&untouched).to_string(),
+            r#"SELECT "orders"."id" FROM "orders" -- binds: []"#
+        );
     }
 
     // Assignments set each column with its type: a nullable column to `NULL`,

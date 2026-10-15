@@ -70,8 +70,34 @@ pub use sqlx::{QueryBuilder, query_builder::Separated};
 /// unchecked `write_*` method, so the check is not reported twice.
 #[doc(hidden)]
 pub mod __private {
+    pub use crate::__if_diesel as if_diesel;
     pub use crate::columns::assert_model_columns;
     pub use queryweave::__private::*;
+}
+
+/// Not public API: the code `#[derive(Columns)]` generates for a Diesel
+/// entity, let through only when this crate has its `diesel` feature.
+///
+/// The derive cannot see this crate's features, and a `#[cfg]` in its output
+/// would test the user's crate's; this macro is defined by this crate, once
+/// per state of the feature, so the generated Diesel code (which names this
+/// crate's `diesel` module) is dropped before it is checked when the feature
+/// is off, and an entity also used with another backend costs nothing.
+#[cfg(feature = "diesel")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __if_diesel {
+    ($($items:tt)*) => {
+        $($items)*
+    };
+}
+
+/// See the other definition: without the `diesel` feature, nothing.
+#[cfg(not(feature = "diesel"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __if_diesel {
+    ($($items:tt)*) => {};
 }
 
 /// Append the filters query to the parent query.

@@ -1,0 +1,18 @@
+error[E0277]: `Order` is not a Diesel entity for `Sqlite`
+  --> tests/ui/append_to_query/fail/diesel_without_diesel_entity.rs:43:28
+   |
+43 |         .diesel_apply_to::<diesel::sqlite::Sqlite, _>(orders::table.into_boxed());
+   |                            ^^^^^^^^^^^^^^^^^^^^^^ no `queryweave_sql::diesel::Entity` for this entity
+   |
+help: the trait `Entity<'_, Sqlite>` is not implemented for `Order`
+  --> tests/ui/append_to_query/fail/diesel_without_diesel_entity.rs:26:1
+   |
+26 | struct Order {
+   | ^^^^^^^^^^^^
+   = note: derive `Columns` on an entity with `#[diesel(table_name = ...)]`, every column of a SQL type queryweave converts (or `#[columns(skip)]`)
+note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
+  --> tests/ui/append_to_query/fail/diesel_without_diesel_entity.rs:34:10
+   |
+34 | #[derive(AppendToQuery)]
+   |          ^^^^^^^^^^^^^ required by this bound in `OrdersQueryModelWrapper::diesel_apply_to`
+   = note: this error originates in the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)

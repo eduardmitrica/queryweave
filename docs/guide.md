@@ -202,8 +202,11 @@ then builds SQL from the query, into the query builder you use:
   [SeaORM](https://docs.rs/sea-orm) (the `sea-query` feature): the clauses are
   added to a `SelectStatement`, `UpdateStatement` or `DeleteStatement`, which
   sea-query renders. See [With SeaORM](#with-seaorm).
+- [Diesel](https://docs.rs/diesel) (the `diesel` feature): the entity and the
+  wrappers give Diesel's own typed conditions, orderings and changesets, for
+  its boxed queries and updates. See [With Diesel](#with-diesel).
 
-Either way the SQL works on Postgres, MySQL/MariaDB and SQLite, and every
+Whichever you use, the SQL works on Postgres, MySQL/MariaDB and SQLite, and every
 value is bound. Only `queryweave-sql` depends on the query builder, so the
 other layers do not get it.
 
@@ -233,7 +236,14 @@ pub struct User {
 - On a SeaORM entity, `#[sea_orm(column_name = "...")]` renames a column and
   `#[sea_orm(ignore)]` fields are not columns, the same way. A field named by
   both libraries must get the same name from each.
-- `rename_all`, from either library, is rejected: name each renamed column on
+- On a Diesel entity, `#[diesel(column_name = name)]` renames a column, and
+  `#[diesel(embed)]` and `#[diesel(select_expression = ...)]` fields are not
+  columns.
+- `#[columns(skip)]` leaves out a column that stores no domain field, such as
+  a surrogate key. On a Diesel entity it is required for a column of a SQL
+  type queryweave cannot convert (a `Uuid` or binary id, `Jsonb`, ...): the
+  build says which, at the field.
+- `rename_all`, from any library, is rejected: name each renamed column on
   its field.
 
 This is the only place a domain field name becomes a column name. Every SQL
@@ -313,6 +323,70 @@ The guard receives the `SelectStatement`, so it adds its conditions with
 match the table's exactly, case included. `queryweave-sql` depends on
 sea-query alone, not SeaORM, so it works with plain sea-query statements just
 the same.
+
+### With Diesel
+
+Diesel types every column, and its query builders change type with each
+clause, so the clauses cannot be written into a query you hand over. Instead,
+the generated code builds Diesel's own typed expressions, and you add them to
+a boxed query (`into_boxed()`), Diesel's way of building a query at run time.
+
+Turn on `queryweave-sql`'s `diesel` feature, plus `diesel-postgres`,
+`diesel-mysql` or `diesel-sqlite` for that backend's date-time types. Derive
+`Columns` on an entity with `#[diesel(table_name = ...)]`, next to Diesel's
+own derives:
+
+```rust,ignore
+#[derive(Queryable, Selectable, Columns)]
+#[diesel(table_name = schema::users)]
+#[columns(model = UserModel)]
+pub struct User {
+    #[columns(skip)]
+    pub id: uuid::Uuid,
+    #[domain_field(age)]
+    pub age_years: i32,
+    #[diesel(column_name = is_active)]
+    pub active: bool,
+}
+
+// A page of users: the filters, sorting and page go into the boxed select,
+// after its own `filter` (here a privileged guard).
+let select = users::table
+    .select(User::as_select())
+    .filter(users::tenant_id.eq(tenant))
+    .into_boxed();
+let users = UsersQueryModelWrapper(filters)
+    .diesel_apply_to(select)?
+    .load(&mut connection)?;
+
+// The set filters alone, as one condition, joined with `OR` here.
+let mut search = users::table.select(User::as_select()).into_boxed();
+if let Some(condition) = UsersFilterOptionsModelWrapper(any_of).diesel_condition(Junction::Or)? {
+    search = search.filter(condition);
+}
+
+// A partial update: the changed values are a changeset.
+diesel::update(users::table.find(id))
+    .set(User::diesel_changeset(patched.changed_values(&changed))?)
+    .execute(&mut connection)?;
+```
+
+The entity also gets `diesel_conditions` and `diesel_order_by`, the
+conditions and orderings themselves, for queries the wrappers do not build.
+Each method returns `ValueMismatch` when a value does not fit its column's SQL
+type (the domain field and the column disagree on the type), never a panic.
+
+Diesel needs the column's Rust type, so the value of a domain field converts
+to it: integers, floats, text, booleans and dates and times, widening without
+loss (an `i16` into a `BigInt` column). A column of another SQL type, such as
+a `Uuid`, `Numeric`, `Jsonb` or an enum, takes no domain value: mark its field
+`#[columns(skip)]` (the build names the column at its field if you do not),
+or implement `ValueSqlType`, `Comparison` and `ColumnValue` for its SQL type.
+Diesel binds the `LIKE` escape character, so the patterns render as
+`LIKE $1 ESCAPE $2`.
+
+The Diesel methods are generated only when `queryweave-sql` has its `diesel`
+feature, so an entity also used through sqlx costs nothing without it.
 
 ## 4. Partial updates: `MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`
 

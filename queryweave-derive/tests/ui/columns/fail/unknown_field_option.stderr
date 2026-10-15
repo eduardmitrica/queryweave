@@ -1,0 +1,8 @@
+error: Unknown #[columns(...)] option `hide`
+
+       = help: Use one of: skip
+
+  --> tests/ui/columns/fail/unknown_field_option.rs:11:15
+   |
+11 |     #[columns(hide)]
+   |               ^^^^

@@ -1,0 +1,71 @@
+error[E0271]: type mismatch resolving `<table as FilterDsl<Box<dyn BoxableExpression<table, Sqlite, SqlType = Nullable<Bool>>>>>::Output == table`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:43:52
+   |
+43 |         .diesel_apply_to::<diesel::sqlite::Sqlite, _>(orders::table);
+   |          ---------------                           ^ expected `table`, found `SelectStatement<_, _, _, _>`
+   |          |
+   |          required by a bound introduced by this call
+   |
+   = note: expected struct `table`
+              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::WhereClause<Box<dyn BoxableExpression<table, Sqlite, SqlType = Nullable<diesel::sql_types::Bool>>>>>`
+   = note: required for `table` to implement `queryweave_sql::diesel::BoxedQuery<'_, table, Sqlite>`
+note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:36:10
+   |
+36 | #[derive(AppendToQuery)]
+   |          ^^^^^^^^^^^^^ required by this bound in `OrdersQueryModelWrapper::diesel_apply_to`
+   = note: this error originates in the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0271]: type mismatch resolving `<table as ThenOrderDsl<Box<dyn BoxableExpression<table, Sqlite, SqlType = NotSelectable>>>>::Output == table`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:43:52
+   |
+43 |         .diesel_apply_to::<diesel::sqlite::Sqlite, _>(orders::table);
+   |          ---------------                           ^ expected `table`, found `SelectStatement<_, _, _, _, _>`
+   |          |
+   |          required by a bound introduced by this call
+   |
+   = note: expected struct `table`
+              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::NoWhereClause, diesel::query_builder::order_clause::OrderClause<Box<dyn BoxableExpression<table, Sqlite, SqlType = NotSelectable>>>>`
+   = note: required for `table` to implement `queryweave_sql::diesel::BoxedQuery<'_, table, Sqlite>`
+note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:36:10
+   |
+36 | #[derive(AppendToQuery)]
+   |          ^^^^^^^^^^^^^ required by this bound in `OrdersQueryModelWrapper::diesel_apply_to`
+   = note: this error originates in the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0271]: type mismatch resolving `<table as LimitDsl>::Output == table`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:43:52
+   |
+43 |         .diesel_apply_to::<diesel::sqlite::Sqlite, _>(orders::table);
+   |          ---------------                           ^ expected `table`, found `SelectStatement<_, _, _, _, _, _>`
+   |          |
+   |          required by a bound introduced by this call
+   |
+   = note: expected struct `table`
+              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::NoWhereClause, diesel::query_builder::order_clause::NoOrderClause, diesel::internal::derives::multiconnection::LimitOffsetClause<diesel::internal::derives::multiconnection::LimitClause<diesel::internal::derives::as_expression::Bound<BigInt, i64>>, diesel::internal::derives::multiconnection::NoOffsetClause>>`
+   = note: required for `table` to implement `queryweave_sql::diesel::BoxedQuery<'_, table, Sqlite>`
+note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:36:10
+   |
+36 | #[derive(AppendToQuery)]
+   |          ^^^^^^^^^^^^^ required by this bound in `OrdersQueryModelWrapper::diesel_apply_to`
+   = note: this error originates in the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0271]: type mismatch resolving `<table as OffsetDsl>::Output == table`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:43:52
+   |
+43 |         .diesel_apply_to::<diesel::sqlite::Sqlite, _>(orders::table);
+   |          ---------------                           ^ expected `table`, found `SelectStatement<_, _, _, _, _, _>`
+   |          |
+   |          required by a bound introduced by this call
+   |
+   = note: expected struct `table`
+              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::NoWhereClause, diesel::query_builder::order_clause::NoOrderClause, diesel::internal::derives::multiconnection::LimitOffsetClause<diesel::internal::derives::multiconnection::NoLimitClause, diesel::internal::derives::multiconnection::OffsetClause<diesel::internal::derives::as_expression::Bound<BigInt, i64>>>>`
+   = note: required for `table` to implement `queryweave_sql::diesel::BoxedQuery<'_, table, Sqlite>`
+note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
+  --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:36:10
+   |
+36 | #[derive(AppendToQuery)]
+   |          ^^^^^^^^^^^^^ required by this bound in `OrdersQueryModelWrapper::diesel_apply_to`
+   = note: this error originates in the derive macro `AppendToQuery` (in Nightly builds, run with -Z macro-backtrace for more info)

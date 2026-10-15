@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `kept` in this scope
+ --> tests/ui/features/if_diesel.rs:9:5
+  |
+9 |     kept();
+  |     ^^^^ not found in this scope

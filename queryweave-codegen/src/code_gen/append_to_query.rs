@@ -14,6 +14,13 @@ pub fn code_gen(
     } = parsed;
     let with_separator_wrapper_ident = mapping_paths.with_wrapper;
     let columns = mapping_paths.columns;
+    let diesel = diesel(
+        name,
+        inner_ty,
+        &with_separator_wrapper_ident,
+        &columns,
+        runtime,
+    );
 
     quote! {
         // Every field this query may filter or sort by must have a column on
@@ -68,6 +75,62 @@ pub fn code_gen(
                 F: FnOnce(&mut Q, &Self),
             {
                 <Self as #runtime::AppendToQuery>::append_to_query(self, query, privileged_guard_option);
+            }
+        }
+
+        #diesel
+    }
+}
+
+/// The wrapper's Diesel method: the query's filters, sorting and page
+/// applied to a Diesel boxed query of a Diesel entity (its
+/// `diesel::Entity`), let through the runtime's `if_diesel!` like the
+/// entity's own Diesel methods.
+fn diesel(
+    name: &syn::Ident,
+    inner_ty: &syn::Type,
+    with_separator_wrapper_ident: &syn::Path,
+    columns: &syn::Path,
+    runtime: &syn::Path,
+) -> proc_macro2::TokenStream {
+    let diesel = quote! { #runtime::diesel };
+    let entity = quote! { <#columns as #diesel::Entity<'q, DB>> };
+
+    quote! {
+        #runtime::__private::if_diesel! {
+            impl #name {
+                /// The boxed query `query` (`table.into_boxed()`, after any
+                /// `select` or `filter` of its own) with this query's filters
+                /// (`AND`ed to the query's own conditions), its sorting (after
+                /// the query's own) and its page (`LIMIT` / `OFFSET`).
+                ///
+                /// Builds only for a Diesel entity (one deriving `Columns`
+                /// with `#[diesel(table_name = ...)]`). Add a privileged
+                /// guard as a `filter` of `query`.
+                ///
+                /// # Errors
+                ///
+                /// The `ValueMismatch` of a filter value that does not fit
+                /// its column's SQL type.
+                pub fn diesel_apply_to<'q, DB, Q>(
+                    &self,
+                    query: Q,
+                ) -> ::core::result::Result<Q, #diesel::ValueMismatch>
+                where
+                    #columns: #diesel::Entity<'q, DB>,
+                    Q: #diesel::BoxedQuery<'q, #entity::Table, DB>,
+                {
+                    let inner: &#inner_ty = &self.0;
+                    let condition = #with_separator_wrapper_ident(inner.and.clone())
+                        .diesel_condition::<DB>(#runtime::Junction::And)?;
+
+                    ::core::result::Result::Ok(#diesel::apply(
+                        query,
+                        condition,
+                        #entity::order_by(inner.sort_keys()),
+                        #diesel::page(inner.page, inner.page_size),
+                    ))
+                }
             }
         }
     }

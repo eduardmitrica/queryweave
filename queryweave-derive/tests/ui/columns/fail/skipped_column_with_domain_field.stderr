@@ -1,0 +1,8 @@
+error: A skipped column stores no domain field
+
+       = help: Remove either #[columns(skip)] or #[domain_field(...)]
+
+  --> tests/ui/columns/fail/skipped_column_with_domain_field.rs:12:5
+   |
+12 |     #[domain_field(delivery_date)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

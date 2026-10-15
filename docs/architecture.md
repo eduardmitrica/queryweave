@@ -181,11 +181,42 @@ date-time types come with `diesel-postgres`, `diesel-mysql` and
 `diesel-sqlite`, which turn on Diesel's feature of the same backend, as
 Diesel's ecosystem crates do.
 
-`Columns` reads the column names from the ORM attributes of either library:
-`#[sqlx(rename)]` or `#[sea_orm(column_name)]` (which must agree when both
-are given), and leaves out `#[sqlx(skip)]`, `#[sqlx(flatten)]` and
-`#[sea_orm(ignore)]` fields. It rejects either's `rename_all`, a renaming it
-does not model.
+`Columns` reads the column names from the ORM attributes of each library:
+`#[sqlx(rename)]`, `#[sea_orm(column_name)]` or `#[diesel(column_name)]`
+(which must agree when several are given), and leaves out `#[sqlx(skip)]`,
+`#[sqlx(flatten)]`, `#[sea_orm(ignore)]`, `#[diesel(embed)]` and
+`#[diesel(select_expression)]` fields, and `#[columns(skip)]` ones (a column
+storing no domain field). It rejects `rename_all`, a renaming it does not
+model.
+
+An entity with `#[diesel(table_name = path)]` is a Diesel one: `Columns` also
+generates `diesel_conditions`, `diesel_order_by` and `diesel_changeset`, each
+a `match` from the domain field to the typed column `path::column`, calling
+the `queryweave_sql::diesel` functions. Their `where` clauses state, per
+column, that its SQL type converts (`FilterColumn`, `OrderColumn`,
+`AssignColumn`), spanned to the column's field, so a column of an unsupported
+SQL type is reported there; `#[columns(skip)]` takes it out.
+
+That code names the runtime's `diesel` module, which exists only with its
+`diesel` feature, and the derive cannot see the runtime's features (a `#[cfg]`
+in its output would test the user's crate's). So the derive puts it inside
+`queryweave_sql::__private::if_diesel!`, a passthrough the runtime defines
+once per state of the feature: kept with it, dropped without it, before
+anything is checked. An entity also used through sqlx costs nothing without
+Diesel.
+
+The wrappers know the entity, not its table, so they cannot name its columns.
+`Columns` therefore also implements `queryweave_sql::diesel::Entity<'q, DB>`
+for a Diesel entity, its table as an associated type and its conditions and
+orderings as methods, under the same column bounds. Through it, an
+`AppendToQueryWithSeparator` wrapper gets `diesel_condition` (the set filters
+as one condition, joined as asked), and an `AppendToQuery` wrapper gets
+`diesel_apply_to` (a boxed query with the filters, sorting and page:
+`diesel::apply`, which takes any `diesel::BoxedQuery`, a query whose `filter`,
+`then_order_by`, `limit` and `offset` keep its type). Both are inside
+`if_diesel!` too; a wrapper of an entity without `#[diesel(table_name)]` still
+builds, and calling them reports that the entity is no `Entity`. No privileged
+guard is needed: the caller adds it as a `filter` of the boxed query.
 
 All SQL in `queryweave-sql` and the code generated for it is portable:
 generic over the query (and, for sqlx, over `DB: BindValues`), standard SQL only (no `RETURNING`, `ILIKE`,

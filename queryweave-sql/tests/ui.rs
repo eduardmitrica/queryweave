@@ -12,6 +12,7 @@ mod ui_tests {
         let backends = [
             ("sqlx", cfg!(feature = "sqlx")),
             ("sea_query", cfg!(feature = "sea-query")),
+            ("if_diesel", cfg!(feature = "diesel")),
         ];
         // rustc lists the trait's impls in the error, so the failing cases'
         // output depends on the other backends: check it without any.

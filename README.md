@@ -4,9 +4,9 @@ queryweave generates the code that lets the clients of an application filter,
 sort, page through and partially update its data, from a few attributes on
 your domain model.
 
-The SQL is built on [sqlx](https://docs.rs/sqlx) or
+The SQL is built on [sqlx](https://docs.rs/sqlx),
 [sea-query](https://docs.rs/sea-query) (and so
-[SeaORM](https://docs.rs/sea-orm)), for Postgres, MySQL/MariaDB and SQLite. The query parameters work with the libraries you choose: with
+[SeaORM](https://docs.rs/sea-orm)) or [Diesel](https://docs.rs/diesel), for Postgres, MySQL/MariaDB and SQLite. The query parameters work with the libraries you choose: with
 serde, they deserialize from a query string read by
 [serde_qs](https://docs.rs/serde_qs).
 
@@ -133,7 +133,7 @@ per layer, which holds the types the generated code uses:
 | `queryweave-derive`  | every layer                 | The derive macros.                                                                                              |
 | `queryweave`         | the domain                  | The core: query, sort and patch data. No database or serializer dependency, so the domain stays free of both.   |
 | `queryweave-api`     | the API layer               | Pages and sort directions for API types, with optional `serde`, `utoipa` and `schemars` support.                |
-| `queryweave-sql`     | the persistence layer       | The SQL, written into sqlx's `QueryBuilder` (feature `sqlx`, default) or sea-query's / SeaORM's statements (feature `sea-query`), for Postgres, MySQL/MariaDB, SQLite. No driver dependency. |
+| `queryweave-sql`     | the persistence layer       | The SQL, written into sqlx's `QueryBuilder` (feature `sqlx`, default) or sea-query's / SeaORM's statements (feature `sea-query`), or as Diesel's typed expressions (feature `diesel`), for Postgres, MySQL/MariaDB, SQLite. No driver dependency. |
 | `queryweave-codegen` | a proc-macro crate of yours | The code generation itself, for when you want your own naming rules or integrations (see below).                |
 
 `queryweave-api` and `queryweave-sql` re-export the core, so each layer needs

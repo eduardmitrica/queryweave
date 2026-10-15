@@ -18,12 +18,18 @@ pub struct Column {
     pub is_mapped: bool,
     /// The column name.
     pub name: String,
+    /// The column's name in Diesel's `table!`: `#[diesel(column_name)]`, or
+    /// the entity field's own name.
+    pub diesel_ident: syn::Ident,
 }
 
 pub struct Parsed<'a> {
     pub ident: &'a syn::Ident,
     pub generics: &'a syn::Generics,
     pub columns: Vec<Column>,
+    /// `#[diesel(table_name = path)]`: the entity is a Diesel one, its columns
+    /// those of the `table!` at `path`.
+    pub diesel_table: Option<syn::Path>,
 }
 
 /// An ORM attribute naming the columns of an entity: its name, the option
@@ -34,8 +40,8 @@ struct OrmAttribute {
     not_a_column: &'static [&'static str],
 }
 
-/// The ORM attributes `Columns` reads: `sqlx`'s and `sea_orm`'s.
-const ORM_ATTRIBUTES: [OrmAttribute; 2] = [
+/// The ORM attributes `Columns` reads: `sqlx`'s, `sea_orm`'s and `diesel`'s.
+const ORM_ATTRIBUTES: [OrmAttribute; 3] = [
     OrmAttribute {
         name: "sqlx",
         rename: "rename",
@@ -46,16 +52,24 @@ const ORM_ATTRIBUTES: [OrmAttribute; 2] = [
         rename: "column_name",
         not_a_column: &["ignore"],
     },
+    OrmAttribute {
+        name: "diesel",
+        rename: "column_name",
+        not_a_column: &["embed", "select_expression"],
+    },
 ];
 
 /// What the ORM attributes say about an entity field.
 #[derive(Default)]
 struct OrmField {
-    /// `#[sqlx(rename = "...")]` / `#[sea_orm(column_name = "...")]`: the
-    /// column name, as written.
+    /// `#[sqlx(rename = "...")]` / `#[sea_orm(column_name = "...")]` /
+    /// `#[diesel(column_name = ...)]`: the column name, as written.
     rename: Option<syn::LitStr>,
-    /// `#[sqlx(skip)]` / `#[sqlx(flatten)]` / `#[sea_orm(ignore)]`: not a
-    /// column of the table.
+    /// `#[diesel(column_name = ...)]`: the column's name in Diesel's `table!`.
+    diesel_column: Option<syn::Ident>,
+    /// `#[sqlx(skip)]` / `#[sqlx(flatten)]` / `#[sea_orm(ignore)]` /
+    /// `#[diesel(embed)]` / `#[diesel(select_expression = ...)]`: not a column
+    /// of the table.
     is_not_a_column: bool,
 }
 
@@ -73,6 +87,20 @@ fn skip_option(meta: &syn::meta::ParseNestedMeta<'_>) -> syn::Result<()> {
     Ok(())
 }
 
+/// A column name, written as a string or (Diesel's way) as an identifier.
+fn column_name(meta: &syn::meta::ParseNestedMeta<'_>) -> syn::Result<syn::LitStr> {
+    let value = meta.value()?;
+    if value.peek(syn::LitStr) {
+        return value.parse();
+    }
+
+    let ident: syn::Ident = value.parse()?;
+    Ok(syn::LitStr::new(
+        ident.to_string().trim_start_matches("r#"),
+        ident.span(),
+    ))
+}
+
 /// Read the ORM attributes of an entity field, consuming their other options
 /// without interpreting them. Two renames of the field must agree.
 fn orm_field(field: &syn::Field) -> syn::Result<OrmField> {
@@ -86,7 +114,7 @@ fn orm_field(field: &syn::Field) -> syn::Result<OrmField> {
         {
             attribute.parse_nested_meta(|meta| {
                 if meta.path.is_ident(orm.rename) {
-                    let column: syn::LitStr = meta.value()?.parse()?;
+                    let column = column_name(&meta)?;
                     if let Some(existing) = &orm_field.rename
                         && existing.value() != column.value()
                     {
@@ -101,9 +129,20 @@ fn orm_field(field: &syn::Field) -> syn::Result<OrmField> {
                             crate::errors::message(&message, help),
                         ));
                     }
+                    if orm.name == "diesel" {
+                        orm_field.diesel_column = Some(column.parse().map_err(|_| {
+                            let message = format!(
+                                "`{}` is not a Rust identifier, as Diesel's column names are",
+                                column.value()
+                            );
+                            let help = "Name the column as it is declared in `table!`";
+                            syn::Error::new(column.span(), crate::errors::message(&message, help))
+                        })?);
+                    }
                     orm_field.rename = Some(column);
                 } else if orm.not_a_column.iter().any(|key| meta.path.is_ident(key)) {
                     orm_field.is_not_a_column = true;
+                    skip_option(&meta)?;
                 } else {
                     skip_option(&meta)?;
                 }
@@ -151,6 +190,40 @@ fn reject_rename_all(attributes: &[syn::Attribute]) -> syn::Result<()> {
     Ok(())
 }
 
+/// `#[diesel(table_name = path)]` on the entity: the Diesel `table!` its
+/// columns are those of, if it is a Diesel entity.
+fn diesel_table(attributes: &[syn::Attribute]) -> syn::Result<Option<syn::Path>> {
+    let mut table = None;
+    for attribute in attributes
+        .iter()
+        .filter(|attribute| attribute.path().is_ident("diesel"))
+    {
+        attribute.parse_nested_meta(|meta| {
+            if meta.path.is_ident("table_name") {
+                table = Some(meta.value()?.parse()?);
+                return Ok(());
+            }
+            skip_option(&meta)
+        })?;
+    }
+
+    Ok(table)
+}
+
+/// `#[columns(skip)]` on an entity field: a column storing no domain field,
+/// left out of the columns (e.g. a Diesel column of a SQL type queryweave
+/// cannot convert, such as a `Uuid` primary key).
+fn is_skipped(field: &syn::Field) -> syn::Result<Option<syn::Ident>> {
+    use crate::attributes::OptionKind;
+
+    crate::attributes::flag_option(
+        &field.attrs,
+        "columns",
+        "skip",
+        &[("skip", OptionKind::Flag)],
+    )
+}
+
 /// Parse the input of a `Columns` derive: its columns and the domain fields
 /// they store.
 ///
@@ -173,6 +246,7 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
     };
 
     reject_rename_all(&input.attributes)?;
+    let diesel_table = diesel_table(&input.attributes)?;
 
     let mut columns = Vec::<Column>::new();
     let mut errors = crate::errors::Errors::default();
@@ -186,6 +260,24 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
             continue;
         };
         if orm_field.is_not_a_column {
+            continue;
+        }
+        let Some(skipped) = errors.check(is_skipped(field)) else {
+            continue;
+        };
+        if skipped.is_some() {
+            if let Some(mapping) = field
+                .attrs
+                .iter()
+                .find(|attribute| attribute.path().is_ident("domain_field"))
+            {
+                let message = "A skipped column stores no domain field";
+                let help = "Remove either #[columns(skip)] or #[domain_field(...)]";
+                errors.push(syn::Error::new_spanned(
+                    mapping,
+                    crate::errors::message(message, help),
+                ));
+            }
             continue;
         }
 
@@ -216,6 +308,9 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
             name: orm_field
                 .rename
                 .map_or_else(|| field_ident.to_string(), |column| column.value()),
+            diesel_ident: orm_field
+                .diesel_column
+                .unwrap_or_else(|| field_ident.clone()),
             domain_field,
         });
     }
@@ -224,6 +319,7 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
         ident: &input.ident,
         generics: &input.generics,
         columns,
+        diesel_table,
     })
 }
 
@@ -353,6 +449,67 @@ mod tests {
         );
     }
 
+    // A Diesel entity: its `table!` from `#[diesel(table_name)]`, a column
+    // renamed by `#[diesel(column_name)]` (an identifier), embedded and
+    // computed fields no columns, and a `#[columns(skip)]` column left out.
+    #[test]
+    fn a_diesel_entity_names_its_table_and_columns() {
+        let input = input(quote::quote! {
+            #[derive(Queryable, Selectable, Columns)]
+            #[diesel(table_name = crate::schema::orders, check_for_backend(diesel::pg::Pg))]
+            #[columns(model = OrderModel)]
+            struct Order {
+                #[columns(skip)]
+                id: Uuid,
+                #[diesel(column_name = order_number)]
+                number: String,
+                #[domain_field(delivery_date)]
+                delivered_at: DateTime<Utc>,
+                #[diesel(embed)]
+                lines: Lines,
+                #[diesel(select_expression = orders::number.concat("!"))]
+                shout: String,
+            }
+        });
+        let parsed = super::parse(&input).unwrap();
+
+        pretty_assertions::assert_eq!(
+            parsed.diesel_table,
+            Some(syn::parse_quote!(crate::schema::orders))
+        );
+        pretty_assertions::assert_eq!(
+            parsed
+                .columns
+                .iter()
+                .map(|column| (
+                    column.domain_field.to_string(),
+                    column.name.clone(),
+                    column.diesel_ident.to_string()
+                ))
+                .collect::<Vec<_>>(),
+            vec![
+                (
+                    String::from("number"),
+                    String::from("order_number"),
+                    String::from("order_number")
+                ),
+                (
+                    String::from("delivery_date"),
+                    String::from("delivered_at"),
+                    String::from("delivered_at")
+                ),
+            ]
+        );
+    }
+
+    // Without `#[diesel(table_name)]` an entity is not a Diesel one.
+    #[test]
+    fn an_entity_without_a_diesel_table_is_not_a_diesel_one() {
+        let input = input(quote::quote! { struct Order { id: i32 } });
+
+        assert!(super::parse(&input).unwrap().diesel_table.is_none());
+    }
+
     #[rstest]
     // Not a struct with named fields.
     #[case(quote::quote! { enum Order { A } })]
@@ -372,6 +529,13 @@ mod tests {
     #[case(quote::quote! { struct Order { id: i32, #[domain_field(id)] order_id: i32 } })]
     // A malformed `#[domain_field(...)]`.
     #[case(quote::quote! { struct Order { #[domain_field()] id: i32 } })]
+    // A skipped column naming the domain field it stores.
+    #[case(quote::quote! { struct Order { #[columns(skip)] #[domain_field(id)] order_id: i32 } })]
+    // An unknown or valued `#[columns(...)]` field option.
+    #[case(quote::quote! { struct Order { #[columns(hide)] id: i32 } })]
+    #[case(quote::quote! { struct Order { #[columns(skip = true)] id: i32 } })]
+    // A Diesel column name that is no identifier.
+    #[case(quote::quote! { struct Order { #[diesel(column_name = "order number")] number: String } })]
     fn invalid_entities_are_rejected(#[case] macro_input: proc_macro2::TokenStream) {
         assert!(super::parse(&input(macro_input)).is_err());
     }

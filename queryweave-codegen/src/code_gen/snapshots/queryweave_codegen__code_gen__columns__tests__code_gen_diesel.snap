@@ -1,0 +1,239 @@
+---
+source: queryweave/queryweave-codegen/src/code_gen/columns.rs
+expression: "prettyplease::unparse(&syn::parse2::<syn::File>(items).unwrap())"
+---
+impl Order {
+    /// The conditions of the model `M` (a generated filter-options
+    /// model's `conditions()`), joined by `junction`, as one condition
+    /// on this entity's table for a boxed query's `filter`; `None` when
+    /// there are none.
+    ///
+    /// Fails to build unless every field of `M` has a column on the
+    /// table, and unless every column's SQL type takes a domain value
+    /// (mark a column storing no domain field `#[columns(skip)]`).
+    ///
+    /// # Errors
+    ///
+    /// The `ValueMismatch` of a value that does not fit its column's
+    /// SQL type.
+    pub fn diesel_conditions<'q, DB, M>(
+        conditions: ::queryweave_sql::Conditions<M>,
+        junction: ::queryweave_sql::Junction,
+    ) -> ::core::result::Result<
+        ::core::option::Option<
+            ::queryweave_sql::diesel::BoxedCondition<
+                'q,
+                crate::schema::orders::table,
+                DB,
+            >,
+        >,
+        ::queryweave_sql::diesel::ValueMismatch,
+    >
+    where
+        DB: ::queryweave_sql::diesel::JoinConditions<'q, crate::schema::orders::table>,
+        M: ::queryweave_sql::PersistedFields,
+        crate::schema::orders::delivered_at: ::queryweave_sql::diesel::FilterColumn<
+            'q,
+            crate::schema::orders::table,
+            DB,
+        >,
+        crate::schema::orders::order_number: ::queryweave_sql::diesel::FilterColumn<
+            'q,
+            crate::schema::orders::table,
+            DB,
+        >,
+    {
+        const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
+        let conditions = conditions
+            .into_iter()
+            .map(|filter_condition| match filter_condition.field {
+                "delivery_date" => {
+                    ::queryweave_sql::diesel::FilterColumn::condition(
+                        crate::schema::orders::delivered_at,
+                        filter_condition,
+                    )
+                }
+                "number" => {
+                    ::queryweave_sql::diesel::FilterColumn::condition(
+                        crate::schema::orders::order_number,
+                        filter_condition,
+                    )
+                }
+                field => {
+                    ::core::result::Result::Err(::queryweave_sql::diesel::ValueMismatch {
+                        field,
+                    })
+                }
+            })
+            .collect::<::core::result::Result<::std::vec::Vec<_>, _>>()?;
+        ::core::result::Result::Ok(
+            <DB as ::queryweave_sql::diesel::JoinConditions<
+                'q,
+                crate::schema::orders::table,
+            >>::join(conditions, junction),
+        )
+    }
+    /// The sort keys of the model `M` (a generated query model's
+    /// `sort_keys()`), in order, as orderings of this entity's table
+    /// for a boxed query's `then_order_by`.
+    ///
+    /// Fails to build unless every field of `M` has a column on the
+    /// table.
+    pub fn diesel_order_by<'q, DB, M>(
+        sort_keys: ::queryweave_sql::SortKeys<M>,
+    ) -> ::std::vec::Vec<
+        ::queryweave_sql::diesel::BoxedOrdering<'q, crate::schema::orders::table, DB>,
+    >
+    where
+        M: ::queryweave_sql::PersistedFields,
+        crate::schema::orders::delivered_at: ::queryweave_sql::diesel::OrderColumn<
+            'q,
+            crate::schema::orders::table,
+            DB,
+        >,
+        crate::schema::orders::order_number: ::queryweave_sql::diesel::OrderColumn<
+            'q,
+            crate::schema::orders::table,
+            DB,
+        >,
+    {
+        const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
+        sort_keys
+            .into_iter()
+            .filter_map(|sort_key| match sort_key.field {
+                "delivery_date" => {
+                    ::core::option::Option::Some(
+                        ::queryweave_sql::diesel::OrderColumn::ordering(
+                            crate::schema::orders::delivered_at,
+                            sort_key,
+                        ),
+                    )
+                }
+                "number" => {
+                    ::core::option::Option::Some(
+                        ::queryweave_sql::diesel::OrderColumn::ordering(
+                            crate::schema::orders::order_number,
+                            sort_key,
+                        ),
+                    )
+                }
+                _ => ::core::option::Option::None,
+            })
+            .collect()
+    }
+    /// The `MergePatch` model `M`'s changed values (its `changed_values`)
+    /// as a Diesel changeset of this entity's table: one `Option` per
+    /// column, `None` for the unchanged ones, for
+    /// `diesel::update(..).set(..)`.
+    ///
+    /// Fails to build unless every field of `M` has a column on the table,
+    /// and unless every column's SQL type takes a domain value (mark a
+    /// column storing no domain field `#[columns(skip)]`).
+    ///
+    /// # Errors
+    ///
+    /// The `ValueMismatch` of a value that does not fit its column's SQL
+    /// type (or a `NULL` for a `NOT NULL` column).
+    pub fn diesel_changeset<M>(
+        assignments: ::queryweave_sql::FieldValues<M>,
+    ) -> ::core::result::Result<
+        (
+            ::core::option::Option<
+                ::queryweave_sql::diesel::Assignment<crate::schema::orders::delivered_at>,
+            >,
+            ::core::option::Option<
+                ::queryweave_sql::diesel::Assignment<crate::schema::orders::order_number>,
+            >,
+        ),
+        ::queryweave_sql::diesel::ValueMismatch,
+    >
+    where
+        M: ::queryweave_sql::PersistedFields,
+        crate::schema::orders::delivered_at: ::queryweave_sql::diesel::AssignColumn,
+        crate::schema::orders::order_number: ::queryweave_sql::diesel::AssignColumn,
+    {
+        const { ::queryweave_sql::__private::assert_model_columns::<Self, M>() };
+        let mut changeset = (
+            ::core::option::Option::<
+                ::queryweave_sql::diesel::Assignment<crate::schema::orders::delivered_at>,
+            >::None,
+            ::core::option::Option::<
+                ::queryweave_sql::diesel::Assignment<crate::schema::orders::order_number>,
+            >::None,
+        );
+        for field_value in assignments {
+            match field_value.field {
+                "delivery_date" => {
+                    changeset.0 = ::core::option::Option::Some(
+                        ::queryweave_sql::diesel::AssignColumn::assignment(
+                            crate::schema::orders::delivered_at,
+                            field_value,
+                        )?,
+                    );
+                }
+                "number" => {
+                    changeset.1 = ::core::option::Option::Some(
+                        ::queryweave_sql::diesel::AssignColumn::assignment(
+                            crate::schema::orders::order_number,
+                            field_value,
+                        )?,
+                    );
+                }
+                field => {
+                    return ::core::result::Result::Err(::queryweave_sql::diesel::ValueMismatch {
+                        field,
+                    });
+                }
+            }
+        }
+        ::core::result::Result::Ok(changeset)
+    }
+}
+impl<'q, DB> ::queryweave_sql::diesel::Entity<'q, DB> for Order
+where
+    DB: ::queryweave_sql::diesel::JoinConditions<'q, crate::schema::orders::table>,
+    crate::schema::orders::delivered_at: ::queryweave_sql::diesel::FilterColumn<
+        'q,
+        crate::schema::orders::table,
+        DB,
+    >,
+    crate::schema::orders::order_number: ::queryweave_sql::diesel::FilterColumn<
+        'q,
+        crate::schema::orders::table,
+        DB,
+    >,
+    crate::schema::orders::delivered_at: ::queryweave_sql::diesel::OrderColumn<
+        'q,
+        crate::schema::orders::table,
+        DB,
+    >,
+    crate::schema::orders::order_number: ::queryweave_sql::diesel::OrderColumn<
+        'q,
+        crate::schema::orders::table,
+        DB,
+    >,
+{
+    type Table = crate::schema::orders::table;
+    fn conditions<M: ::queryweave_sql::PersistedFields>(
+        conditions: ::queryweave_sql::Conditions<M>,
+        junction: ::queryweave_sql::Junction,
+    ) -> ::core::result::Result<
+        ::core::option::Option<
+            ::queryweave_sql::diesel::BoxedCondition<
+                'q,
+                crate::schema::orders::table,
+                DB,
+            >,
+        >,
+        ::queryweave_sql::diesel::ValueMismatch,
+    > {
+        Self::diesel_conditions(conditions, junction)
+    }
+    fn order_by<M: ::queryweave_sql::PersistedFields>(
+        sort_keys: ::queryweave_sql::SortKeys<M>,
+    ) -> ::std::vec::Vec<
+        ::queryweave_sql::diesel::BoxedOrdering<'q, crate::schema::orders::table, DB>,
+    > {
+        Self::diesel_order_by(sort_keys)
+    }
+}

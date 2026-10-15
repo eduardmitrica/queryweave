@@ -65,3 +65,25 @@ impl OrdersQueryModelWrapper {
         );
     }
 }
+::queryweave_sql::__private::if_diesel! {
+    impl OrdersQueryModelWrapper { #[doc =
+    r" The boxed query `query` (`table.into_boxed()`, after any"] #[doc =
+    r" `select` or `filter` of its own) with this query's filters"] #[doc =
+    r" (`AND`ed to the query's own conditions), its sorting (after"] #[doc =
+    r" the query's own) and its page (`LIMIT` / `OFFSET`)."] #[doc = r""] #[doc =
+    r" Builds only for a Diesel entity (one deriving `Columns`"] #[doc =
+    r" with `#[diesel(table_name = ...)]`). Add a privileged"] #[doc =
+    r" guard as a `filter` of `query`."] #[doc = r""] #[doc = r" # Errors"] #[doc = r""]
+    #[doc = r" The `ValueMismatch` of a filter value that does not fit"] #[doc =
+    r" its column's SQL type."] pub fn diesel_apply_to < 'q, DB, Q > (& self, query : Q,)
+    -> ::core::result::Result < Q, ::queryweave_sql::diesel::ValueMismatch > where crate
+    ::entities::order::Order : ::queryweave_sql::diesel::Entity < 'q, DB >, Q :
+    ::queryweave_sql::diesel::BoxedQuery < 'q, < crate ::entities::order::Order as
+    ::queryweave_sql::diesel::Entity < 'q, DB >> ::Table, DB >, { let inner : &
+    OrdersQueryModel = & self.0; let condition = OrdersFilterOptionsModelWrapper(inner
+    .and.clone()).diesel_condition:: < DB > (::queryweave_sql::Junction::And) ?;
+    ::core::result::Result::Ok(::queryweave_sql::diesel::apply(query, condition, < crate
+    ::entities::order::Order as ::queryweave_sql::diesel::Entity < 'q, DB >>
+    ::order_by(inner.sort_keys()), ::queryweave_sql::diesel::page(inner.page, inner
+    .page_size),)) } }
+}

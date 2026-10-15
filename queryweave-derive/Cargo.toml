@@ -32,7 +32,7 @@ merge-patch = ["queryweave-codegen/merge-patch"]
 # The generated code names these; the derives themselves do not use them.
 queryweave-api = { path = "../queryweave-api", features = ["serde", "utoipa", "schemars"] }
 queryweave.path = "../queryweave"
-queryweave-sql = { path = "../queryweave-sql", features = ["sea-query"] }
+queryweave-sql = { path = "../queryweave-sql", features = ["sea-query", "diesel-sqlite"] }
 serde.workspace = true
 serde_json.workspace = true
 sqlx = { workspace = true, features = ["derive", "runtime-tokio", "postgres", "mysql", "chrono"] }
@@ -42,6 +42,9 @@ garde.workspace = true
 schemars.workspace = true
 # The SeaORM entities of `tests/sea_orm.rs`.
 sea-orm = { workspace = true, features = ["macros", "with-chrono"] }
+# The Diesel entities of `tests/diesel.rs`, on SQLite (bundled).
+diesel = { workspace = true, features = ["sqlite", "chrono"] }
+libsqlite3-sys.workspace = true
 
 trybuild.workspace = true
 chrono.workspace = true
