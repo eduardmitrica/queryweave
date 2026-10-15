@@ -39,10 +39,11 @@ count = 2
 delay = "1s"
 
 # Fast local runs: neither the UI tests (each case is a full `cargo build`)
-# nor the database tests (they start Postgres, MySQL and MariaDB containers).
+# nor the database tests (they start Postgres, MySQL and MariaDB containers:
+# `postgres` / `mysql` for sqlx, `diesel_postgres` / `diesel_mysql` for Diesel).
 [profile.fast]
 fail-fast = false
-default-filter = "not ( test(/ui_tests/) | (package(queryweave-sql) & (binary(postgres) | binary(mysql))) )"
+default-filter = "not ( test(/ui_tests/) | (package(queryweave-sql) & binary(/^(diesel_)?(postgres|mysql)$/)) )"
 
 [profile.fast.retries]
 backoff = "fixed"

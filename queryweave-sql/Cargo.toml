@@ -70,6 +70,9 @@ sea-query-sqlx = { workspace = true, features = ["sqlx-sqlite", "with-chrono"] }
 # (bundled, so no system library is needed).
 diesel = { workspace = true, features = ["sqlite", "postgres_backend", "mysql_backend", "chrono"] }
 libsqlite3-sys.workspace = true
+# The diesel backend against real Postgres, MySQL and MariaDB: Diesel's DSL over
+# pure Rust drivers, so no libpq or mysqlclient is needed.
+diesel-async = { workspace = true, features = ["postgres", "mysql"] }
 
 # The SQL tests run through sqlx's `QueryBuilder`.
 [[test]]
@@ -91,6 +94,14 @@ required-features = ["sea-query"]
 [[test]]
 name = "diesel_sqlite"
 required-features = ["diesel-sqlite"]
+
+[[test]]
+name = "diesel_postgres"
+required-features = ["diesel-postgres"]
+
+[[test]]
+name = "diesel_mysql"
+required-features = ["diesel-mysql"]
 
 # docs.rs documents every feature: the integrations and backends are opt-in.
 [package.metadata.docs.rs]

@@ -1,13 +1,21 @@
-//! sea-query's statements as queries the SQL is written into: a
-//! `SelectStatement`, `UpdateStatement` or `DeleteStatement` (`sea-orm`'s, through
-//! `QueryTrait::query`), rendered for Postgres, MySQL/MariaDB or SQLite by
-//! sea-query.
+//! sea-query's statements as queries the SQL is written into.
+//!
+//! A `SelectStatement`, `UpdateStatement` or `DeleteStatement` (`sea-orm`'s,
+//! through `QueryTrait::query`), rendered for Postgres, MySQL/MariaDB or SQLite
+//! by sea-query.
 //!
 //! The data becomes sea-query expressions rather than SQL text: conditions one
 //! `Condition` (`all` for `AND`, `any` for `OR`) added with `cond_where`,
 //! which writes the `WHERE` itself; sort keys `order_by`; a page `limit` and
 //! `offset`; assignments `value`. sea-query binds every value and quotes the
 //! column names.
+//!
+//! Public as `queryweave_sql::sea_query`: [`check_column_types`], which checks
+//! a `SeaORM` entity's column types against a model's value types.
+
+mod check;
+
+pub use check::{ColumnTypeMismatch, MismatchReason, accepted_kinds, check_column_types};
 
 #[cfg(feature = "merge-patch")]
 use crate::AssignmentsTarget;

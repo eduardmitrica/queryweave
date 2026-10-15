@@ -43,6 +43,8 @@ pub use queryweave::*;
 pub use backend::BindValues;
 #[cfg(feature = "diesel")]
 pub use backend::diesel;
+#[cfg(feature = "sea-query")]
+pub use backend::sea_query;
 pub use columns::{
     Columns, Message, column_for, first_field_without_column, missing_column_message,
 };

@@ -5,7 +5,7 @@
 #[cfg(feature = "diesel")]
 pub mod diesel;
 #[cfg(feature = "sea-query")]
-mod sea_query;
+pub mod sea_query;
 #[cfg(feature = "sqlx")]
 mod sqlx;
 

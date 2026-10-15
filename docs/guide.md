@@ -324,6 +324,35 @@ match the table's exactly, case included. `queryweave-sql` depends on
 sea-query alone, not SeaORM, so it works with plain sea-query statements just
 the same.
 
+sea-query binds a value whatever its column's type, and the database decides
+what a mismatch means: Postgres rejects it when the query runs, while MySQL and
+SQLite convert it, so a text column filtered with a number may silently match
+the wrong rows. SeaORM knows each column's type at run time, so check the
+entity against a model once, in a test or at startup:
+
+```rust
+use queryweave_sql::sea_query::check_column_types;
+use sea_orm::{ColumnTrait, IdenStatic, Iterable};
+
+let columns = user::Column::iter().map(|column| {
+    let def = column.def();
+    (column.as_str(), def.get_column_type().clone(), def.is_null())
+});
+check_column_types::<user::Model, UsersFilterOptionsModel>(columns)?;
+```
+
+It returns the first domain field whose value the column does not take (an
+`i16` in a `Text` column, say), or that may be `None` and is stored in a
+`NOT NULL` column (a `MergePatch` model's optional field), naming the field,
+the column and what the column takes. Integers fit any integer column; the
+range is the database's to check, as with sqlx. A UTC date-time
+(`DateTime<Utc>`) fits only a column with a time zone (SeaORM's
+`DateTimeWithTimeZone`, Postgres' `timestamptz`): Postgres compares and
+stores it in a column without one by the session's time zone, so the results
+would depend on the server's settings. Use a `NaiveDateTime` for a `DateTime`
+or `Timestamp` column (MySQL's `DATETIME`). A column of a custom type, and a
+model implementing `PersistedFields` by hand, are not checked.
+
 ### With Diesel
 
 Diesel types every column, and its query builders change type with each

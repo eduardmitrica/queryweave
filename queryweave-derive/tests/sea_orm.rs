@@ -142,3 +142,78 @@ fn changed_values_write_into_a_sea_orm_update() {
         r#"UPDATE "orders" SET "client" = ?"#
     );
 }
+
+/// An entity storing the delivery date as text: the domain and the schema
+/// disagree on its type.
+mod text_dated_order {
+    use queryweave_derive::Columns;
+    use sea_orm::entity::prelude::*;
+
+    #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Columns)]
+    #[sea_orm(table_name = "orders")]
+    #[columns(model = super::OrderModel)]
+    pub struct Model {
+        #[sea_orm(primary_key)]
+        pub id: i32,
+        #[domain_field(delivery_date)]
+        #[sea_orm(column_name = "delivered_on")]
+        pub delivered_at: String,
+        pub client: String,
+    }
+
+    #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+    pub enum Relation {}
+
+    impl ActiveModelBehavior for ActiveModel {}
+}
+
+/// `(name, type, nullable)` of each column of the `SeaORM` entity `E`.
+fn columns<E: EntityTrait>() -> Vec<(&'static str, sea_orm::ColumnType, bool)> {
+    use sea_orm::{ColumnTrait, IdenStatic, Iterable};
+
+    E::Column::iter()
+        .map(|column| {
+            let def = column.def();
+            (
+                column.as_str(),
+                def.get_column_type().clone(),
+                def.is_null(),
+            )
+        })
+        .collect()
+}
+
+// The entity's column types fit the filters' and the merge patch's values.
+#[test]
+fn the_entity_column_types_fit_the_model_values() {
+    use queryweave_sql::sea_query::check_column_types;
+
+    assert_eq!(
+        check_column_types::<order::Model, OrdersFilterOptionsModel>(columns::<order::Entity>()),
+        Ok(())
+    );
+    assert_eq!(
+        check_column_types::<order::Model, ClientModel>(columns::<order::Entity>()),
+        Ok(())
+    );
+}
+
+// A column of another type is reported, naming the field and the column.
+#[test]
+fn a_column_of_another_type_is_reported() {
+    use queryweave_sql::sea_query::check_column_types;
+
+    let mismatch =
+        check_column_types::<text_dated_order::Model, OrdersFilterOptionsModel>(columns::<
+            text_dated_order::Entity,
+        >())
+        .err()
+        .map(|mismatch| mismatch.to_string());
+
+    assert_eq!(
+        mismatch.as_deref(),
+        Some(
+            "the value of domain field `delivery_date` (`DateTime<Utc>`) does not fit the column `delivered_on` of `Model`, which takes `String`: make the field's type and the column's type in the entity agree"
+        )
+    );
+}

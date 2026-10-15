@@ -62,7 +62,7 @@ for features in merge-patch merge-patch,sqlx merge-patch,sea-query merge-patch,d
   step "queryweave-sql with features [$features]"
   cargo clippy -p queryweave-sql --all-targets --no-default-features --features "$features" -- -D warnings
   cargo nextest run -p queryweave-sql --no-default-features --features "$features" --ignore-default-filter \
-    -E 'not (binary(postgres) | binary(mysql))'
+    -E 'not binary(/^(diesel_)?(postgres|mysql)$/)'
 done
 
 # Without the default `merge-patch` feature: the filters alone.
@@ -76,7 +76,8 @@ cargo nextest run -p queryweave-sql --no-default-features --ignore-default-filte
 
 if [ "$mode" = ci ] || [ "$mode" = all ]; then
   step "database tests (Docker)"
-  cargo nextest run -p queryweave-sql --test postgres --test mysql
+  cargo nextest run -p queryweave-sql --features diesel-postgres,diesel-mysql \
+    --test postgres --test mysql --test diesel_postgres --test diesel_mysql
 fi
 
 if [ "$mode" = all ]; then

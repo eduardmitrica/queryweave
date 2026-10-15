@@ -162,6 +162,20 @@ features never changes generated code. The target traits name the features in
 their `diagnostic::on_unimplemented` message, so a disabled backend is
 reported as such rather than as a missing trait.
 
+sea-query binds every value with its own type, whatever the column's, and
+the database decides what a mismatch means (Postgres rejects it, MySQL and
+SQLite convert it). SeaORM knows each column's type at run time
+(`ColumnTrait::def`, a sea-query `ColumnType` and its nullability), so
+`queryweave_sql::sea_query::check_column_types` compares those with a model's
+value types (`PersistedFields::FIELD_TYPES`), once, from a test or at
+startup. The caller hands the columns over: the generated code may name only
+its runtime crate, and `queryweave-sql` depends on sea-query alone (SeaORM
+needs a newer Rust than its MSRV). The check groups by meaning, not width,
+since the database converts within a group (any integer in any integer
+column), except a UTC date-time, which fits only a column with a time zone:
+Postgres would convert one without by the session's time zone. A custom
+column type is not checked.
+
 Diesel is the third backend, and the odd one out. Its columns are types (one
 per column, from `table!`) and its builders are consumed by value, so no
 string can name a column and no `&mut` target trait fits. Diesel's own answer
@@ -417,7 +431,11 @@ change.
   queries.
   `tests/postgres.rs` and `tests/mysql.rs` (MySQL and MariaDB) run it against
   real servers, which they start in containers, so they need Docker; the
-  `fast` nextest profile leaves them out.
+  `fast` nextest profile leaves them out. `tests/diesel_postgres.rs` and
+  `tests/diesel_mysql.rs` do the same for the Diesel backend, through
+  `diesel-async` (Diesel's DSL over pure Rust drivers, so the tests need no
+  libpq or mysqlclient); Postgres types parameters strictly, and MySQL and
+  MariaDB must accept the bound `LIKE` escape character.
 - `queryweave/tests/no_sqlx.rs` checks, with `cargo tree`, that no queryweave
   crate but `queryweave-sql` depends on sqlx, with all features and none: a
   domain using queryweave never gets sqlx from it.
