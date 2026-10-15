@@ -23,6 +23,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       # The runner has Docker, for the Postgres, MySQL and MariaDB containers.
       - run: sh scripts/check.sh ci
+      # See the `ui` job: `check.sh` runs the feature UI cases too.
+      - if: always()
+        run: mkdir -p target/tests/target
 
   # The published crates' libraries, with every feature, build on the
   # `rust-version` they declare. Tests and dev-dependencies (SeaORM needs a
@@ -52,3 +55,8 @@ jobs:
           tool: cargo-nextest
       - uses: Swatinem/rust-cache@v2
       - run: cargo nextest run --workspace -E 'test(/ui_tests/)'
+      # rust-cache's post step cleans `target/tests/target` (where some test
+      # tools build) without awaiting it, so its absence is an unhandled
+      # `ENOENT`; trybuild builds in `target/tests/trybuild` only.
+      - if: always()
+        run: mkdir -p target/tests/target
