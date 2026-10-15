@@ -153,16 +153,16 @@ pub fn append_to_query<C: Conventions>(input: TokenStream) -> TokenStream {
     steps::expand::<pipeline::append_to_query::AppendToQuery<C>>(input)
 }
 
-/// `#[derive(AppendToQueryWithSeparator)]`: the append to query with
-/// separator trait for a filter-options wrapper.
+/// `#[derive(AppendConditions)]`: `queryweave_sql::AppendConditions` for a
+/// filter-options wrapper, appending its set filters to a query as conditions.
 ///
-/// `#[append_to_query(columns = Entity)]` names the entity (deriving `Columns`) whose columns
+/// `#[append_conditions(columns = Entity)]` names the entity (deriving `Columns`) whose columns
 /// store the filtered domain fields.
 ///
-/// Attributes: `append_to_query` (`columns`).
+/// Attributes: `append_conditions` (`columns`).
 #[must_use]
-pub fn append_to_query_with_separator<C: Conventions>(input: TokenStream) -> TokenStream {
-    steps::expand::<pipeline::append_to_query_with_separator::AppendToQueryWithSeparator<C>>(input)
+pub fn append_conditions<C: Conventions>(input: TokenStream) -> TokenStream {
+    steps::expand::<pipeline::append_conditions::AppendConditions<C>>(input)
 }
 
 /// `#[derive(Columns)]`: `queryweave_sql::Columns` for a `sqlx` entity,

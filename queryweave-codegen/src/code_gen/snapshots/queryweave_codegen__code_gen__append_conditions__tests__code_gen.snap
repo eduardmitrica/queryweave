@@ -1,9 +1,9 @@
 ---
-source: queryweave/queryweave-codegen/src/code_gen/append_to_query_with_separator.rs
+source: queryweave/queryweave-codegen/src/code_gen/append_conditions.rs
 expression: "prettyplease::unparse(&syn::parse2::<syn::File>(token_stream).unwrap())"
 ---
-impl ::queryweave_sql::AppendToQueryWithSeparator for OrdersFilterOptionsModelWrapper {
-    fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
+impl ::queryweave_sql::AppendConditions for OrdersFilterOptionsModelWrapper {
+    fn append_conditions<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
         query: &mut Q,
         junction: ::queryweave_sql::Junction,
@@ -19,13 +19,13 @@ impl OrdersFilterOptionsModelWrapper {
     /// Append the set filters to the query as conditions joined by
     /// `junction`.
     ///
-    /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
-    pub fn append_to_query<Q: ::queryweave_sql::ConditionsTarget>(
+    /// See the `AppendConditions` trait's `append_conditions`.
+    pub fn append_conditions<Q: ::queryweave_sql::ConditionsTarget>(
         &self,
         query: &mut Q,
         junction: ::queryweave_sql::Junction,
     ) {
-        <Self as ::queryweave_sql::AppendToQueryWithSeparator>::append_to_query(
+        <Self as ::queryweave_sql::AppendConditions>::append_conditions(
             self,
             query,
             junction,

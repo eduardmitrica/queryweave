@@ -19,7 +19,7 @@ impl ::queryweave_sql::AppendToQuery for OrdersQueryModelWrapper {
             if inner.and.has_options() {
                 ::queryweave_sql::ConditionsTarget::write_where(query);
                 let wrapper = OrdersFilterOptionsModelWrapper(inner.and.clone());
-                ::queryweave_sql::AppendToQueryWithSeparator::append_to_query(
+                ::queryweave_sql::AppendConditions::append_conditions(
                     &wrapper,
                     query,
                     ::queryweave_sql::Junction::And,

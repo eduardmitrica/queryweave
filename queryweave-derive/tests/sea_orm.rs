@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use pretty_assertions::assert_eq;
 use queryweave::{ChangeSet, ChangedFields, SortDirectionModel};
 use queryweave_derive::{
-    AppendToQuery, AppendToQueryWithSeparator, Filters, MergePatch, MergePatchNullableFields,
+    AppendConditions, AppendToQuery, Filters, MergePatch, MergePatchNullableFields,
 };
 use sea_orm::sea_query::SelectStatement;
 use sea_orm::{DbBackend, EntityTrait, QueryTrait};
@@ -62,8 +62,8 @@ mod order {
     impl ActiveModelBehavior for ActiveModel {}
 }
 
-#[derive(Debug, AppendToQueryWithSeparator)]
-#[append_to_query(columns = order::Model)]
+#[derive(Debug, AppendConditions)]
+#[append_conditions(columns = order::Model)]
 struct OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel);
 
 #[derive(Debug, AppendToQuery)]

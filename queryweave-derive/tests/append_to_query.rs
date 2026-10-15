@@ -1,10 +1,10 @@
 //! Behavior of the code `#[derive(AppendToQuery)]` and
-//! `#[derive(AppendToQueryWithSeparator)]` generate.
+//! `#[derive(AppendConditions)]` generate.
 
 use chrono::{DateTime, Utc};
 use pretty_assertions::assert_eq;
 use queryweave::SortDirectionModel;
-use queryweave_derive::{AppendToQuery, AppendToQueryWithSeparator, Columns, Filters};
+use queryweave_derive::{AppendConditions, AppendToQuery, Columns, Filters};
 use sqlx::{MySql, Postgres, QueryBuilder};
 
 #[allow(dead_code)]
@@ -28,8 +28,8 @@ struct Order {
     client: String,
 }
 
-#[derive(Debug, AppendToQueryWithSeparator)]
-#[append_to_query(columns = Order)]
+#[derive(Debug, AppendConditions)]
+#[append_conditions(columns = Order)]
 struct OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel);
 
 #[derive(Debug, AppendToQuery)]
@@ -110,7 +110,7 @@ fn filter_options_are_joined_by_the_junction() {
         client_eq: Some(String::from("acme")),
         ..Default::default()
     })
-    .append_to_query(&mut query_builder, queryweave_sql::Junction::Or);
+    .append_conditions(&mut query_builder, queryweave_sql::Junction::Or);
 
     assert_eq!(query_builder.sql(), "delivered_at > $1 OR client = $2 ");
 }

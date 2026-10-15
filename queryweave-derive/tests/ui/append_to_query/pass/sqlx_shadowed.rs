@@ -1,7 +1,7 @@
 //! The generated code reaches sqlx through `queryweave_sql`, never by a
 //! relative `sqlx::...` path: a local item named `sqlx` (or a renamed sqlx
 //! dependency) does not break it.
-use queryweave_derive::{AppendToQuery, AppendToQueryWithSeparator, Columns, Filters};
+use queryweave_derive::{AppendToQuery, AppendConditions, Columns, Filters};
 
 #[allow(dead_code)]
 mod sqlx {
@@ -21,8 +21,8 @@ pub struct Order {
     pub value: i32,
 }
 
-#[derive(Debug, AppendToQueryWithSeparator)]
-#[append_to_query(columns = Order)]
+#[derive(Debug, AppendConditions)]
+#[append_conditions(columns = Order)]
 pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
 
 #[derive(Debug, AppendToQuery)]

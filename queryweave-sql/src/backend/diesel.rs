@@ -628,7 +628,7 @@ where
 ///
 /// Its methods are the entity's `diesel_conditions` and `diesel_order_by` as
 /// a trait, so the code generated for the wrappers (`AppendToQuery`,
-/// `AppendToQueryWithSeparator`), which knows the entity but not its table,
+/// `AppendConditions`), which knows the entity but not its table,
 /// can name them. `DB` is the backend, `'a` how long the boxed expressions
 /// live.
 #[diagnostic::on_unimplemented(

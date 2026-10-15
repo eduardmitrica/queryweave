@@ -1,4 +1,4 @@
-use queryweave_derive::{AppendToQuery, AppendToQueryWithSeparator, Columns, Filters};
+use queryweave_derive::{AppendToQuery, AppendConditions, Columns, Filters};
 
 mod schema {
     diesel::table! {
@@ -29,8 +29,8 @@ struct Order {
     client: String,
 }
 
-#[derive(AppendToQueryWithSeparator)]
-#[append_to_query(columns = Order)]
+#[derive(AppendConditions)]
+#[append_conditions(columns = Order)]
 struct OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel);
 
 #[derive(AppendToQuery)]

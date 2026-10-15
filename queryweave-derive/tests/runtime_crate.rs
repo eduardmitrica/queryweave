@@ -7,8 +7,8 @@
 
 use pretty_assertions::assert_eq;
 use queryweave_derive::{
-    AppendToQuery, AppendToQueryWithSeparator, Columns, Filters, MergePatch,
-    MergePatchNullableFields, RawValue, ValidateNonNullable,
+    AppendConditions, AppendToQuery, Columns, Filters, MergePatch, MergePatchNullableFields,
+    RawValue, ValidateNonNullable,
 };
 use sqlx::{Postgres, QueryBuilder};
 use validator::Validate;
@@ -75,9 +75,9 @@ struct Widget {
     note: Option<String>,
 }
 
-#[derive(Debug, AppendToQueryWithSeparator)]
+#[derive(Debug, AppendConditions)]
 #[queryweave(crate = crate::sql_runtime)]
-#[append_to_query(columns = Widget)]
+#[append_conditions(columns = Widget)]
 struct WidgetsFilterOptionsModelWrapper(WidgetsFilterOptionsModel);
 
 #[derive(Debug, AppendToQuery)]

@@ -1,10 +1,10 @@
 use quote::quote;
 
-/// Generate the `AppendToQueryWithSeparator` code.
+/// Generate the `AppendConditions` code.
 #[must_use]
 pub fn code_gen(
     parsed: &crate::parse::append_to_query_shared::Parsed<'_>,
-    mapping_paths: crate::mapping::append_to_query_with_separator::MappingPaths,
+    mapping_paths: crate::mapping::append_conditions::MappingPaths,
 ) -> proc_macro2::TokenStream {
     let runtime = &mapping_paths.runtime;
     let crate::parse::append_to_query_shared::Parsed {
@@ -15,8 +15,8 @@ pub fn code_gen(
     let diesel = diesel(name, &columns, runtime);
 
     quote! {
-        impl #runtime::AppendToQueryWithSeparator for #name {
-            fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
+        impl #runtime::AppendConditions for #name {
+            fn append_conditions<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
                 // The domain model describes its set filters as data; turning
                 // them into SQL, against the entity's columns, happens here.
                 <#columns as #runtime::Columns>::push_conditions(query, self.0.conditions(), junction);
@@ -24,14 +24,14 @@ pub fn code_gen(
         }
 
         // Again as an inherent method, so callers use it without importing
-        // `queryweave_sql::AppendToQueryWithSeparator`.
+        // `queryweave_sql::AppendConditions`.
         impl #name {
             /// Append the set filters to the query as conditions joined by
             /// `junction`.
             ///
-            /// See the `AppendToQueryWithSeparator` trait's `append_to_query`.
-            pub fn append_to_query<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
-                <Self as #runtime::AppendToQueryWithSeparator>::append_to_query(self, query, junction);
+            /// See the `AppendConditions` trait's `append_conditions`.
+            pub fn append_conditions<Q: #runtime::ConditionsTarget>(&self, query: &mut Q, junction: #runtime::Junction) {
+                <Self as #runtime::AppendConditions>::append_conditions(self, query, junction);
             }
         }
 
@@ -92,7 +92,7 @@ mod tests {
             wrapper_ident: &quote::format_ident!("OrdersFilterOptionsModelWrapper"),
             inner_ty: &syn::parse_str("OrdersFilterOptionsModel").unwrap(),
         };
-        let mapping_paths = crate::mapping::append_to_query_with_separator::MappingPaths {
+        let mapping_paths = crate::mapping::append_conditions::MappingPaths {
             columns: syn::parse_str("crate::entities::order::Order").unwrap(),
             runtime: syn::parse_quote!(::queryweave_sql),
         };

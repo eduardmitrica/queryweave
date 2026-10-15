@@ -129,7 +129,7 @@ pub trait Conventions {
 
     /// The path of the SQL runtime crate, named by the code generated for the
     /// persistence layer (`Columns`, `AppendToQuery`,
-    /// `AppendToQueryWithSeparator`). Defaults to `::queryweave_sql`.
+    /// `AppendConditions`). Defaults to `::queryweave_sql`.
     #[must_use]
     fn sql_crate() -> syn::Path {
         syn::parse_quote!(::queryweave_sql)

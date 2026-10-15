@@ -91,8 +91,8 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(AppendToQueryWithSeparator)]
-#[append_to_query(columns = User)]
+#[derive(AppendConditions)]
+#[append_conditions(columns = User)]
 pub struct UsersFilterOptionsModelWrapper(pub UsersFilterOptionsModel);
 
 #[derive(AppendToQuery)]
@@ -128,13 +128,13 @@ keep `queryweave-sql`'s `sqlx` feature: `features = ["sqlx"]`).
 You depend on `queryweave-derive` for the macros, and on one runtime crate
 per layer, which holds the types the generated code uses:
 
-| Crate                | Use it in                   | What it holds                                                                                                   |
-| -------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `queryweave-derive`  | every layer                 | The derive macros.                                                                                              |
-| `queryweave`         | the domain                  | The core: query, sort and patch data. No database or serializer dependency, so the domain stays free of both.   |
-| `queryweave-api`     | the API layer               | Pages and sort directions for API types, with optional `serde`, `utoipa` and `schemars` support.                |
+| Crate                | Use it in                   | What it holds                                                                                                                                                                                                                                     |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryweave-derive`  | every layer                 | The derive macros.                                                                                                                                                                                                                                |
+| `queryweave`         | the domain                  | The core: query, sort and patch data. No database or serializer dependency, so the domain stays free of both.                                                                                                                                     |
+| `queryweave-api`     | the API layer               | Pages and sort directions for API types, with optional `serde`, `utoipa` and `schemars` support.                                                                                                                                                  |
 | `queryweave-sql`     | the persistence layer       | The SQL, written into sqlx's `QueryBuilder` (feature `sqlx`, default) or sea-query's / SeaORM's statements (feature `sea-query`), or as Diesel's typed expressions (feature `diesel`), for Postgres, MySQL/MariaDB, SQLite. No driver dependency. |
-| `queryweave-codegen` | a proc-macro crate of yours | The code generation itself, for when you want your own naming rules or integrations (see below).                |
+| `queryweave-codegen` | a proc-macro crate of yours | The code generation itself, for when you want your own naming rules or integrations (see below).                                                                                                                                                  |
 
 `queryweave-api` and `queryweave-sql` re-export the core, so each layer needs
 only its own runtime crate.

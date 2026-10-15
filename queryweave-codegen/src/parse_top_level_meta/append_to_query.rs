@@ -9,7 +9,7 @@ const APPEND_TO_QUERY_OPTIONS: [(&str, crate::attributes::OptionKind); 2] = [
 pub struct TopLevelMeta {
     /// `#[append_to_query(filters = path)]`: the wrapper building the `WHERE`
     /// clause from the query model's filters.
-    pub with_separator_wrapper: syn::Path,
+    pub conditions_wrapper: syn::Path,
     /// `#[append_to_query(columns = path)]`: the entity whose
     /// `queryweave_sql::Columns` store the wrapped model's domain fields.
     pub columns: syn::Path,
@@ -25,7 +25,7 @@ impl crate::steps::TopLevelMeta for TopLevelMeta {
         // is reported.
         let append_to_query = (|| {
             const COLUMNS_HELP: &str = "Name the entity (deriving Columns) that stores the wrapped model's fields: #[append_to_query(columns = path)]";
-            const FILTERS_HELP: &str = "Name the wrapper deriving AppendToQueryWithSeparator over the filters of this query model: #[append_to_query(filters = path)]";
+            const FILTERS_HELP: &str = "Name the wrapper deriving AppendConditions over the filters of this query model: #[append_to_query(filters = path)]";
             let read = |key, help| {
                 crate::attributes::path_option(
                     attributes,
@@ -49,11 +49,11 @@ impl crate::steps::TopLevelMeta for TopLevelMeta {
         let runtime_crate = crate::attributes::crate_option(attributes);
 
         // Report every malformed attribute at once.
-        let ((with_separator_wrapper, columns), runtime_crate) =
+        let ((conditions_wrapper, columns), runtime_crate) =
             crate::errors::both(append_to_query, runtime_crate)?;
 
         Ok(Self {
-            with_separator_wrapper,
+            conditions_wrapper,
             columns,
             runtime_crate,
         })
@@ -81,7 +81,7 @@ mod tests {
         pretty_assertions::assert_eq!(
             top_level_meta,
             super::TopLevelMeta {
-                with_separator_wrapper: syn::parse_str("OrdersFilterOptionsModelWrapper").unwrap(),
+                conditions_wrapper: syn::parse_str("OrdersFilterOptionsModelWrapper").unwrap(),
                 columns: syn::parse_str("crate::entities::order::Order").unwrap(),
                 runtime_crate: None,
             }

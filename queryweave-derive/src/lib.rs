@@ -64,10 +64,10 @@ pub fn derive_append_to_query(input: TokenStream) -> TokenStream {
 }
 
 /// The SQL of a wrapper of a domain filter-options model; see
-/// `queryweave_codegen::append_to_query_with_separator`.
-#[proc_macro_derive(AppendToQueryWithSeparator, attributes(queryweave, append_to_query))]
-pub fn derive_append_to_query_with_separator(input: TokenStream) -> TokenStream {
-    queryweave_codegen::append_to_query_with_separator::<DefaultConventions>(input.into()).into()
+/// `queryweave_codegen::append_conditions`.
+#[proc_macro_derive(AppendConditions, attributes(queryweave, append_conditions))]
+pub fn derive_append_conditions(input: TokenStream) -> TokenStream {
+    queryweave_codegen::append_conditions::<DefaultConventions>(input.into()).into()
 }
 
 /// `queryweave_sql::Columns` for a `sqlx` entity

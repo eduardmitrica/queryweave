@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use queryweave_derive::{AppendToQueryWithSeparator, Columns};
+use queryweave_derive::{AppendConditions, Columns};
 
 pub struct OrderModel {
     pub delivery_date: DateTime<Utc>,
@@ -11,8 +11,8 @@ pub struct Order {
     pub delivery_date: DateTime<Utc>,
 }
 
-#[derive(Debug, AppendToQueryWithSeparator)]
-#[append_to_query(columns = Order)]
+#[derive(Debug, AppendConditions)]
+#[append_conditions(columns = Order)]
 pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
 
 fn main() {}

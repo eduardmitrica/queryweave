@@ -7,8 +7,7 @@ use diesel::prelude::*;
 use pretty_assertions::assert_eq;
 use queryweave::{ChangeSet, ChangedFields, SortDirectionModel};
 use queryweave_derive::{
-    AppendToQuery, AppendToQueryWithSeparator, Columns, Filters, MergePatch,
-    MergePatchNullableFields,
+    AppendConditions, AppendToQuery, Columns, Filters, MergePatch, MergePatchNullableFields,
 };
 use queryweave_sql::Junction;
 use queryweave_sql::diesel::ValueMismatch;
@@ -67,8 +66,8 @@ struct Order {
 }
 
 /// The wrappers writing a query model's data to the entity's boxed queries.
-#[derive(AppendToQueryWithSeparator)]
-#[append_to_query(columns = Order)]
+#[derive(AppendConditions)]
+#[append_conditions(columns = Order)]
 struct OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel);
 
 #[derive(AppendToQuery)]

@@ -12,15 +12,9 @@ pub fn code_gen(
         inner_ty,
         ..
     } = parsed;
-    let with_separator_wrapper_ident = mapping_paths.with_wrapper;
+    let conditions_wrapper = mapping_paths.with_wrapper;
     let columns = mapping_paths.columns;
-    let diesel = diesel(
-        name,
-        inner_ty,
-        &with_separator_wrapper_ident,
-        &columns,
-        runtime,
-    );
+    let diesel = diesel(name, inner_ty, &conditions_wrapper, &columns, runtime);
 
     quote! {
         // Every field this query may filter or sort by must have a column on
@@ -40,8 +34,8 @@ pub fn code_gen(
                         if inner.and.has_options() {
                             #runtime::ConditionsTarget::write_where(query);
 
-                            let wrapper = #with_separator_wrapper_ident(inner.and.clone());
-                            #runtime::AppendToQueryWithSeparator::append_to_query(&wrapper, query, #runtime::Junction::And);
+                            let wrapper = #conditions_wrapper(inner.and.clone());
+                            #runtime::AppendConditions::append_conditions(&wrapper, query, #runtime::Junction::And);
                         }
                     }
                     fn build_clauses_after_where_clause<Q: #runtime::OrderByTarget + #runtime::PageTarget>(
@@ -89,7 +83,7 @@ pub fn code_gen(
 fn diesel(
     name: &syn::Ident,
     inner_ty: &syn::Type,
-    with_separator_wrapper_ident: &syn::Path,
+    conditions_wrapper: &syn::Path,
     columns: &syn::Path,
     runtime: &syn::Path,
 ) -> proc_macro2::TokenStream {
@@ -121,7 +115,7 @@ fn diesel(
                     Q: #diesel::BoxedQuery<'q, #entity::Table, DB>,
                 {
                     let inner: &#inner_ty = &self.0;
-                    let condition = #with_separator_wrapper_ident(inner.and.clone())
+                    let condition = #conditions_wrapper(inner.and.clone())
                         .diesel_condition::<DB>(#runtime::Junction::And)?;
 
                     ::core::result::Result::Ok(#diesel::apply(

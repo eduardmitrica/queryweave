@@ -1,6 +1,6 @@
 //! The `queryweave` runtime for the persistence layer: the traits and SQL the
 //! code generated for entities and wrappers (`Columns`, `AppendToQuery`,
-//! `AppendToQueryWithSeparator`) names, on top of the core runtime
+//! `AppendConditions`) names, on top of the core runtime
 //! (`queryweave`), which it re-exports so that code names only this crate.
 //!
 //! This is where the domain's database-agnostic filters, sorting and writes
@@ -139,9 +139,10 @@ pub trait AppendToQuery {
         F: FnOnce(&mut Q, &Self);
 }
 
-/// Append to query individual filters.
-pub trait AppendToQueryWithSeparator {
-    /// Append to query individual filters: any target taking conditions (for
-    /// sqlx, a `QueryBuilder` of any `BindValues` database).
-    fn append_to_query<Q: ConditionsTarget>(&self, query: &mut Q, junction: Junction);
+/// Append a filter-options model's set filters to a query as conditions.
+pub trait AppendConditions {
+    /// Append the set filters as conditions joined by `junction`, to any
+    /// target taking conditions (for sqlx, a `QueryBuilder` of any
+    /// `BindValues` database).
+    fn append_conditions<Q: ConditionsTarget>(&self, query: &mut Q, junction: Junction);
 }

@@ -10,7 +10,7 @@ pub struct Parsed<'a> {
     pub inner_ty: &'a syn::Type,
 }
 
-/// Parse the input of an `AppendToQuery` or `AppendToQueryWithSeparator`
+/// Parse the input of an `AppendToQuery` or `AppendConditions`
 /// derive.
 ///
 /// # Errors
@@ -20,26 +20,25 @@ pub fn parse(input: &Input) -> syn::Result<Parsed<'_>> {
     let name = &input.ident;
 
     let syn::Data::Struct(data_struct) = &input.data else {
-        let message = "Cannot call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on any other item, other than a struct";
-        let help =
-            "Call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct";
+        let message = "Cannot call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on any other item, other than a struct";
+        let help = "Call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct";
         return crate::errors::abort_call_site(message, help);
     };
     let syn::Fields::Unnamed(unnamed) = &data_struct.fields else {
-        let message = "Cannot call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct that doesn't have unnamed fields";
-        let help = "Call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct with unnamed fields";
+        let message = "Cannot call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct that doesn't have unnamed fields";
+        let help = "Call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct with unnamed fields";
         return crate::errors::abort_spanned(&data_struct.fields, message, help);
     };
 
     if unnamed.unnamed.len() != 1 {
-        let message = "Cannot call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct that doesn't have exactly one unnamed field";
-        let help = "Call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct with exactly one unnamed field";
+        let message = "Cannot call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct that doesn't have exactly one unnamed field";
+        let help = "Call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct with exactly one unnamed field";
         return crate::errors::abort_spanned(&unnamed.unnamed, message, help);
     }
 
     let Some(field) = &unnamed.unnamed.first() else {
-        let message = "Cannot call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct that doesn't have exactly one unnamed field";
-        let help = "Call #[derive(AppendToQueryWithSeparator)] or #[derive(AppendToQuery)] on a struct with exactly one unnamed field";
+        let message = "Cannot call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct that doesn't have exactly one unnamed field";
+        let help = "Call #[derive(AppendConditions)] or #[derive(AppendToQuery)] on a struct with exactly one unnamed field";
         return crate::errors::abort_spanned(&unnamed.unnamed, message, help);
     };
 
@@ -55,7 +54,7 @@ mod tests {
     #[test]
     fn test_parsing_succeeds_when_all_preconditions_are_met() {
         let macro_input = quote::quote! {
-            #[derive(Debug, AppendToQueryWithSeparator)]
+            #[derive(Debug, AppendConditions)]
             pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
         };
 
@@ -82,7 +81,7 @@ mod tests {
     #[test]
     fn test_parsing_fails_when_no_unnamed_fields_provided() {
         let macro_input = quote::quote! {
-            #[derive(Debug, AppendToQueryWithSeparator)]
+            #[derive(Debug, AppendConditions)]
             pub struct OrdersFilterOptionsModelWrapper();
         };
 
@@ -97,7 +96,7 @@ mod tests {
     #[test]
     fn test_parsing_fails_when_more_than_one_unnamed_field_provided() {
         let macro_input = quote::quote! {
-            #[derive(Debug, AppendToQueryWithSeparator)]
+            #[derive(Debug, AppendConditions)]
             pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel, pub UserFilterOptionsModel);
         };
 

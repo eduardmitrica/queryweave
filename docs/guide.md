@@ -191,7 +191,7 @@ at the path. Two structs mirroring each other fail to compile with an
 pointing at both `mirrors` paths: read it as "this chain of mirrors never
 reaches a root model".
 
-## 3. The database: `Columns`, `AppendToQuery`, `AppendToQueryWithSeparator`
+## 3. The database: `Columns`, `AppendToQuery`, `AppendConditions`
 
 The persistence layer maps the model's fields onto the columns of its entity,
 then builds SQL from the query, into the query builder you use:
@@ -256,8 +256,8 @@ query.
 Two newtypes around the generated domain types build the clauses:
 
 ```rust,ignore
-#[derive(AppendToQueryWithSeparator)]
-#[append_to_query(columns = User)]
+#[derive(AppendConditions)]
+#[append_conditions(columns = User)]
 pub struct UsersFilterOptionsModelWrapper(pub UsersFilterOptionsModel);
 
 #[derive(AppendToQuery)]
@@ -265,7 +265,7 @@ pub struct UsersFilterOptionsModelWrapper(pub UsersFilterOptionsModel);
 pub struct UsersQueryModelWrapper(pub UsersQueryModel);
 ```
 
-- `AppendToQueryWithSeparator` writes the filters, joined by a `Junction`
+- `AppendConditions` writes the filters, joined by a `Junction`
   (`Junction::And` or `Junction::Or`), for example after your own `WHERE`, or
   in a `COUNT(*)` query.
 - `AppendToQuery` writes a whole query's clauses: `WHERE` (through the

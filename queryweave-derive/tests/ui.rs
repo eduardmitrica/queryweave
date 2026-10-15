@@ -51,11 +51,11 @@ mod ui_tests {
     }
 
     #[test]
-    fn test_ui_append_to_query_with_separator() {
+    fn test_ui_append_conditions() {
         let t = trybuild::TestCases::new();
 
-        t.compile_fail("tests/ui/append_to_query_with_separator/fail/*.rs");
-        t.pass("tests/ui/append_to_query_with_separator/pass/*.rs");
+        t.compile_fail("tests/ui/append_conditions/fail/*.rs");
+        t.pass("tests/ui/append_conditions/pass/*.rs");
     }
 
     #[test]

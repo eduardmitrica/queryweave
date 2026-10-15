@@ -1,4 +1,4 @@
-/// What an `AppendToQueryWithSeparator` wrapper links to: the entity whose
+/// What an `AppendConditions` wrapper links to: the entity whose
 /// columns store the wrapped filters' domain fields.
 #[derive(Debug, PartialEq, Eq)]
 pub struct MappingPaths {
@@ -8,11 +8,11 @@ pub struct MappingPaths {
     pub runtime: syn::Path,
 }
 
-/// The entity named by `#[append_to_query(columns = path)]`: the compiler checks it is one
+/// The entity named by `#[append_conditions(columns = path)]`: the compiler checks it is one
 /// deriving `Columns` where the generated code names it.
 #[must_use]
 pub fn generate_paths<C: crate::conventions::Conventions>(
-    top_level_meta: crate::parse_top_level_meta::append_to_query_with_separator::TopLevelMeta,
+    top_level_meta: crate::parse_top_level_meta::append_conditions::TopLevelMeta,
 ) -> MappingPaths {
     MappingPaths {
         columns: top_level_meta.columns,

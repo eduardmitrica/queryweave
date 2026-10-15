@@ -224,7 +224,7 @@ The wrappers know the entity, not its table, so they cannot name its columns.
 `Columns` therefore also implements `queryweave_sql::diesel::Entity<'q, DB>`
 for a Diesel entity, its table as an associated type and its conditions and
 orderings as methods, under the same column bounds. Through it, an
-`AppendToQueryWithSeparator` wrapper gets `diesel_condition` (the set filters
+`AppendConditions` wrapper gets `diesel_condition` (the set filters
 as one condition, joined as asked), and an `AppendToQuery` wrapper gets
 `diesel_apply_to` (a boxed query with the filters, sorting and page:
 `diesel::apply`, which takes any `diesel::BoxedQuery`, a query whose `filter`,

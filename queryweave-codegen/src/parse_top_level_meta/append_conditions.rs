@@ -1,12 +1,12 @@
-/// The options of `#[append_to_query(...)]` on a filter options wrapper: its
+/// The options of `#[append_conditions(...)]` on a filter options wrapper: its
 /// filters are its own, so it takes no `filters` wrapper.
 const APPEND_TO_QUERY_OPTIONS: [(&str, crate::attributes::OptionKind); 1] =
     [("columns", crate::attributes::OptionKind::Path)];
 
-/// The struct attributes of an `AppendToQueryWithSeparator` wrapper.
+/// The struct attributes of an `AppendConditions` wrapper.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TopLevelMeta {
-    /// `#[append_to_query(columns = path)]`: the entity whose
+    /// `#[append_conditions(columns = path)]`: the entity whose
     /// `queryweave_sql::Columns` store the wrapped filters' domain fields.
     pub columns: syn::Path,
     /// `#[queryweave(crate = path)]`: where the runtime crate the generated
@@ -18,10 +18,10 @@ impl crate::steps::TopLevelMeta for TopLevelMeta {
     fn from_attributes(attributes: &[syn::Attribute]) -> syn::Result<Self> {
         let columns = crate::attributes::required_path_option(
             attributes,
-            "append_to_query",
+            "append_conditions",
             "columns",
             &APPEND_TO_QUERY_OPTIONS,
-            "Name the entity (deriving Columns) that stores the wrapped filters' fields: #[append_to_query(columns = path)]",
+            "Name the entity (deriving Columns) that stores the wrapped filters' fields: #[append_conditions(columns = path)]",
         );
         let runtime_crate = crate::attributes::crate_option(attributes);
 
@@ -47,8 +47,8 @@ mod tests {
     #[test]
     fn test_parsing_top_level_meta_succeeds_when_all_preconditions_are_met() {
         let top_level_meta = parse(quote::quote! {
-            #[derive(Debug, AppendToQueryWithSeparator)]
-            #[append_to_query(columns = crate::entities::order::Order)]
+            #[derive(Debug, AppendConditions)]
+            #[append_conditions(columns = crate::entities::order::Order)]
             pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
         })
         .unwrap();
@@ -67,7 +67,7 @@ mod tests {
     fn test_parsing_top_level_meta_rejects_a_filters_option() {
         assert!(
             parse(quote::quote! {
-                #[append_to_query(columns = crate::entities::order::Order, filters = Other)]
+                #[append_conditions(columns = crate::entities::order::Order, filters = Other)]
                 pub struct OrdersFilterOptionsModelWrapper(pub OrdersFilterOptionsModel);
             })
             .is_err()

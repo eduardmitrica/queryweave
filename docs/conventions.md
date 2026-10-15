@@ -85,7 +85,7 @@ pub fn derive_filters(input: TokenStream) -> TokenStream {
 
 Each derive you want gets such a function: `queryweave_codegen::filters`,
 `merge_patch`, `merge_patch_nullable_fields`, `validate_non_nullable`,
-`raw_value`, `columns`, `append_to_query`, `append_to_query_with_separator`.
+`raw_value`, `columns`, `append_to_query`, `append_conditions`.
 List the attributes each derive reads in its `#[proc_macro_derive]`, as
 `queryweave-derive` does; its source is the reference.
 

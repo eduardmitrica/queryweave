@@ -1,6 +1,6 @@
 error: No #[append_to_query(filters = ...)] attribute provided
 
-       = help: Name the wrapper deriving AppendToQueryWithSeparator over the filters of this query model: #[append_to_query(filters = path)]
+       = help: Name the wrapper deriving AppendConditions over the filters of this query model: #[append_to_query(filters = path)]
 
   --> $DIR/no_filters_provided.rs:17:17
    |

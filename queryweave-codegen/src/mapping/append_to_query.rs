@@ -20,20 +20,20 @@ pub fn generate_paths<C: crate::conventions::Conventions>(
     top_level_meta: crate::parse_top_level_meta::append_to_query::TopLevelMeta,
 ) -> syn::Result<MappingPaths> {
     let crate::parse_top_level_meta::append_to_query::TopLevelMeta {
-        with_separator_wrapper,
+        conditions_wrapper,
         columns,
         runtime_crate,
     } = top_level_meta;
 
     let what = "filter-options wrapper";
     C::check_wrapper_name(
-        crate::names::path_name(&with_separator_wrapper, what)?,
-        &with_separator_wrapper,
+        crate::names::path_name(&conditions_wrapper, what)?,
+        &conditions_wrapper,
         what,
     )?;
 
     Ok(MappingPaths {
-        with_wrapper: with_separator_wrapper,
+        with_wrapper: conditions_wrapper,
         columns,
         runtime: runtime_crate.unwrap_or_else(C::sql_crate),
     })
@@ -42,10 +42,10 @@ pub fn generate_paths<C: crate::conventions::Conventions>(
 #[cfg(test)]
 mod tests {
     fn top_level_meta(
-        with_separator_wrapper: &str,
+        conditions_wrapper: &str,
     ) -> crate::parse_top_level_meta::append_to_query::TopLevelMeta {
         crate::parse_top_level_meta::append_to_query::TopLevelMeta {
-            with_separator_wrapper: syn::parse_str(with_separator_wrapper).unwrap(),
+            conditions_wrapper: syn::parse_str(conditions_wrapper).unwrap(),
             columns: syn::parse_str("crate::entities::order::Order").unwrap(),
             runtime_crate: None,
         }

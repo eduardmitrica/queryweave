@@ -74,10 +74,10 @@ fn cases() -> Vec<(&'static str, Derive, proc_macro2::TokenStream, &'static str)
             "queryweave_sql",
         ),
         (
-            "AppendToQueryWithSeparator",
-            queryweave_codegen::append_to_query_with_separator::<DefaultConventions>,
+            "AppendConditions",
+            queryweave_codegen::append_conditions::<DefaultConventions>,
             quote::quote! {
-                #[append_to_query(columns = Order)]
+                #[append_conditions(columns = Order)]
                 struct OrdersFilterOptionsModelWrapper(OrdersFilterOptionsModel);
             },
             "queryweave_sql",
