@@ -5,6 +5,8 @@ pub struct IntermediaryRepresentation<'a> {
 
     /// The patchable fields.
     pub field_idents: Vec<syn::Ident>,
+    /// The type of each patchable field (same index in `field_idents`).
+    pub field_types: Vec<syn::Type>,
 }
 
 /// Lower the model of a `MergePatch` derive on the struct `ident`.
@@ -16,6 +18,7 @@ pub fn lower(
     IntermediaryRepresentation {
         ident,
         field_idents: model.field_idents,
+        field_types: model.field_types,
     }
 }
 
@@ -28,8 +31,13 @@ mod tests {
             quote::format_ident!("client"),
             quote::format_ident!("capacity"),
         ];
+        let field_types = vec![
+            syn::parse_quote!(Option<String>),
+            syn::parse_quote!(OrderCapacity),
+        ];
         let model = crate::analyze::merge_patch::Model {
             field_idents: field_idents.clone(),
+            field_types: field_types.clone(),
         };
 
         pretty_assertions::assert_eq!(
@@ -37,6 +45,7 @@ mod tests {
             super::IntermediaryRepresentation {
                 ident: &ident,
                 field_idents,
+                field_types,
             }
         );
     }

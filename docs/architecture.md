@@ -174,9 +174,24 @@ and an item of the model's data, and the `match` comes from the code generated
 for the entity. The item's `Value` converts to the column's Rust type through
 `ValueSqlType`, implemented per Diesel SQL type; the column's SQL type picks
 the implementation (`Comparison`, `ColumnValue`), so the generated code is the
-same call for every column and never classifies a type. A value that does not
-fit its column (the domain and the schema disagree on the type, or a `NULL`
-goes to a `NOT NULL` column) is a `ValueMismatch` error. Each backend's own
+same call for every column and never classifies a type.
+
+A domain field whose value does not fit its column (the domain and the schema
+disagree on the type, or a field that may be `None` is written to a `NOT NULL`
+column) fails to build, like a missing column: the domain derives publish each
+field's value type next to its name (`PersistedFields::FIELD_TYPES`, from
+`IntoValue::TYPE`, so the domain crate resolves value objects and private
+fields itself), each `ValueSqlType` lists the `Value` variants it takes
+(`ACCEPTS`, generated from the same list as the conversion, so the two cannot
+drift), and `diesel_conditions` / `diesel_changeset` compare them in an inline
+`const` block over the entity's columns (`FilterColumn::ACCEPTS` and
+`AssignColumn::TYPE`, consts of the column bounds the methods already have, so
+a column of an unsupported SQL type is still one error). Being post-monomorphization, it is reported by `cargo build`,
+not `cargo check`: an item-level check would have to name the model's
+generated types, which `Columns` cannot. Sort keys carry no value and are not
+checked. What still does not fit at run time (a model implementing
+`PersistedFields` by hand, which has no value types) is a `ValueMismatch`
+error, never a panic. Each backend's own
 date-time types come with `diesel-postgres`, `diesel-mysql` and
 `diesel-sqlite`, which turn on Diesel's feature of the same backend, as
 Diesel's ecosystem crates do.

@@ -33,10 +33,13 @@ pub struct UsersFilterOptionsModel {
     /// Keeps the items whose `username` starts with the given value.
     pub username_sw: Option<<String as ::queryweave::RawValue>::Raw>,
 }
-/// The domain fields these filters compare, for the persistence layer
-/// to map onto columns.
+/// The domain fields these filters compare, and their value types,
+/// for the persistence layer to map onto columns.
 impl ::queryweave::PersistedFields for UsersFilterOptionsModel {
     const FIELD_NAMES: &'static [&'static str] = &["username"];
+    const FIELD_TYPES: &'static [::queryweave::ValueType] = &[
+        <<String as ::queryweave::RawValue>::Raw as ::queryweave::IntoValue>::TYPE,
+    ];
 }
 impl UsersFilterOptionsModel {
     /// Check if there are any filters that are not `None`.

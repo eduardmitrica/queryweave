@@ -373,8 +373,20 @@ diesel::update(users::table.find(id))
 
 The entity also gets `diesel_conditions` and `diesel_order_by`, the
 conditions and orderings themselves, for queries the wrappers do not build.
-Each method returns `ValueMismatch` when a value does not fit its column's SQL
-type (the domain field and the column disagree on the type), never a panic.
+A domain field whose value does not fit its column's SQL type (a number
+stored in a `Text` column, say), or that may be `None` and is written to a
+`NOT NULL` column, fails to build where the method is called, naming the
+field, the column and what it takes:
+
+```text
+the value of domain field `quantity` (`i16`) does not fit the column `quantity`
+of `Order`, which takes `String`: make the field's type and the column's SQL
+type in `table!` agree
+```
+
+Like the missing-column check, `cargo build` reports it, not `cargo check`.
+Only a model implementing `PersistedFields` by hand escapes it; its values are
+checked at run time instead, as a `ValueMismatch` error, never a panic.
 
 Diesel needs the column's Rust type, so the value of a domain field converts
 to it: integers, floats, text, booleans and dates and times, widening without

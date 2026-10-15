@@ -132,6 +132,21 @@ fn diesel_arms<'p>(
         .unzip()
 }
 
+/// `(domain field, what its column takes)` for every column, the argument
+/// of the runtime's value-type checks: each column's `const` (built by
+/// `column_const`) through the column bound the method already has
+/// (`FilterColumn::ACCEPTS`, `AssignColumn::TYPE`), so the check adds no
+/// bound, nor an error of its own for a column of an unsupported SQL type.
+fn column_types(
+    parsed: &crate::parse::columns::Parsed<'_>,
+    column_const: impl Fn(&syn::Ident) -> proc_macro2::TokenStream,
+) -> proc_macro2::TokenStream {
+    let (domain_fields, diesel_idents) = diesel_arms(parsed);
+    let consts = diesel_idents.iter().map(|column| column_const(column));
+
+    quote! { &[#((#domain_fields, #consts)),*] }
+}
+
 /// One `where` predicate per column, built by `bound`, spanned to the
 /// column's entity field: a column whose SQL type takes no domain value is
 /// reported there (at the definition for the changeset, whose predicates name
@@ -177,6 +192,9 @@ fn diesel_items(
         &[filter_bounds.as_slice(), order_bounds.as_slice()].concat(),
     );
     let changeset = diesel_changeset(parsed, table, runtime);
+    let column_types = column_types(parsed, |column| {
+        quote! { <#table::#column as #diesel::FilterColumn<'q, #table::table, DB>>::ACCEPTS }
+    });
 
     quote! {
         // The model's data as Diesel expressions on this entity's table, for
@@ -188,13 +206,15 @@ fn diesel_items(
             /// there are none.
             ///
             /// Fails to build unless every field of `M` has a column on the
-            /// table, and unless every column's SQL type takes a domain value
-            /// (mark a column storing no domain field `#[columns(skip)]`).
+            /// table whose SQL type takes the field's value, and unless every
+            /// column's SQL type takes a domain value (mark a column storing
+            /// no domain field `#[columns(skip)]`).
             ///
             /// # Errors
             ///
             /// The `ValueMismatch` of a value that does not fit its column's
-            /// SQL type.
+            /// SQL type (only for a model without value types: one
+            /// implementing `PersistedFields` by hand).
             pub fn diesel_conditions<'q, DB, M>(
                 conditions: #runtime::Conditions<M>,
                 junction: #runtime::Junction,
@@ -208,6 +228,9 @@ fn diesel_items(
                 #(#filter_bounds,)*
             {
                 const { #runtime::__private::assert_model_columns::<Self, M>() };
+                const {
+                    #runtime::__private::assert_condition_types::<Self, M>(#column_types)
+                };
 
                 let conditions = conditions
                     .into_iter()
@@ -320,6 +343,9 @@ fn diesel_changeset(
     let (domain_fields, diesel_idents) = diesel_arms(parsed);
     let indices = (0..diesel_idents.len()).map(syn::Index::from);
     let diesel = quote! { #runtime::diesel };
+    let column_types = column_types(parsed, |column| {
+        quote! { <#table::#column as #diesel::AssignColumn>::TYPE }
+    });
     let assign_bounds = column_bounds(&diesel_idents, |column| {
         quote! { #table::#column: #diesel::AssignColumn }
     });
@@ -331,14 +357,17 @@ fn diesel_changeset(
         /// column, `None` for the unchanged ones, for
         /// `diesel::update(..).set(..)`.
         ///
-        /// Fails to build unless every field of `M` has a column on the table,
-        /// and unless every column's SQL type takes a domain value (mark a
-        /// column storing no domain field `#[columns(skip)]`).
+        /// Fails to build unless every field of `M` has a column on the table
+        /// whose SQL type takes the field's value (and is nullable for a
+        /// field that may be `None`), and unless every column's SQL type takes
+        /// a domain value (mark a column storing no domain field
+        /// `#[columns(skip)]`).
         ///
         /// # Errors
         ///
         /// The `ValueMismatch` of a value that does not fit its column's SQL
-        /// type (or a `NULL` for a `NOT NULL` column).
+        /// type, or a `NULL` for a `NOT NULL` column (only for a model without
+        /// value types: one implementing `PersistedFields` by hand).
         pub fn diesel_changeset<M>(
             assignments: #runtime::FieldValues<M>,
         ) -> ::core::result::Result<
@@ -350,6 +379,7 @@ fn diesel_changeset(
             #(#assign_bounds,)*
         {
             const { #runtime::__private::assert_model_columns::<Self, M>() };
+            const { #runtime::__private::assert_assignment_types::<Self, M>(#column_types) };
 
             let mut changeset = (#(::core::option::Option::<
                 #diesel::Assignment<#table::#diesel_idents>,

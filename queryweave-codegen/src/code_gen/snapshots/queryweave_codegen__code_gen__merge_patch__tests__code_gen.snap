@@ -18,10 +18,16 @@ impl ::queryweave::ChangedFields for OrderModel {
     }
 }
 /// The domain fields a merge patch may write (those not marked
-/// `#[merge_patch(skip)]`, i.e. what `changed_values` can return),
-/// for the persistence layer to map onto columns.
+/// `#[merge_patch(skip)]`, i.e. what `changed_values` can return), and
+/// their value types, for the persistence layer to map onto columns.
 impl ::queryweave::PersistedFields for OrderModel {
     const FIELD_NAMES: &'static [&'static str] = &["client", "capacity"];
+    const FIELD_TYPES: &'static [::queryweave::ValueType] = &[
+        <<Option<
+            String,
+        > as ::queryweave::RawValue>::Raw as ::queryweave::IntoValue>::TYPE,
+        <<OrderCapacity as ::queryweave::RawValue>::Raw as ::queryweave::IntoValue>::TYPE,
+    ];
 }
 impl OrderModel {
     /// Merge a model with a patch resulting in a modified model.

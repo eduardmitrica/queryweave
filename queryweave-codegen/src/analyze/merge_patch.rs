@@ -3,6 +3,9 @@ pub struct Model {
     /// The patchable fields, i.e. those not marked `#[merge_patch(skip)]`.
     #[new(default)]
     pub field_idents: Vec<syn::Ident>,
+    /// The type of each patchable field (same index in `field_idents`).
+    #[new(default)]
+    pub field_types: Vec<syn::Type>,
 }
 
 /// Analyze the fields of a `MergePatch` model.
@@ -25,6 +28,7 @@ pub fn analyze(parsed: &crate::parse::merge_patch::Parsed<'_>) -> syn::Result<Mo
         // `queryweave::PatchField`.
         if errors.check(crate::attributes::is_skipped(field, "merge_patch")) == Some(false) {
             model.field_idents.push(field_ident.clone());
+            model.field_types.push(field.ty.clone());
         }
     }
 
@@ -67,6 +71,13 @@ mod tests {
             vec![
                 quote::format_ident!("client"),
                 quote::format_ident!("capacity"),
+            ]
+        );
+        pretty_assertions::assert_eq!(
+            model.field_types,
+            vec![
+                syn::parse_quote!(Option<String>),
+                syn::parse_quote!(OrderCapacity),
             ]
         );
     }

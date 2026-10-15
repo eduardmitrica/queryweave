@@ -1,4 +1,23 @@
 error[E0277]: `u64` cannot be filtered on or stored
+ --> $DIR/root_unsupported_raw_value.rs:7:13
+  |
+7 |     visits: u64,
+  |             ^^^ no `queryweave::Value` variant for this raw value
+  |
+  = help: the trait `IntoValue` is not implemented for `u64`
+  = note: supported raw values: bool, i8..i64, u8..u32, f32, f64, String and the chrono date/time types (and `Option`s of them); `u64` is not supported, since no Postgres integer holds its whole range: use `i64`, or add a `Value` variant (e.g. for `NUMERIC`)
+  = help: the following other types implement trait `IntoValue`:
+            f32
+            f64
+            i16
+            i32
+            i64
+            i8
+            u16
+            u32
+            u8
+
+error[E0277]: `u64` cannot be filtered on or stored
  --> $DIR/root_unsupported_raw_value.rs:4:10
   |
 4 | #[derive(Filters)]

@@ -33,7 +33,7 @@ pub mod __private {
     pub use crate::version::require_version;
 }
 pub use raw_value::{Boolean, Ordered, RawValue, Text};
-pub use value::{FieldValue, FilterCondition, IntoValue, SortKey, Value};
+pub use value::{FieldValue, FilterCondition, IntoValue, SortKey, Value, ValueKind, ValueType};
 
 /// A type whose data names domain fields the persistence layer maps onto
 /// columns.
@@ -46,6 +46,16 @@ pub use value::{FieldValue, FilterCondition, IntoValue, SortKey, Value};
 pub trait PersistedFields {
     /// The domain fields, once each, in declaration order.
     const FIELD_NAMES: &'static [&'static str];
+
+    /// The value type of each field, in [`FIELD_NAMES`](Self::FIELD_NAMES)
+    /// order (the [`IntoValue::TYPE`] of its raw value), for the persistence
+    /// layer to check against its column's type at compile time; empty when
+    /// unknown, which checks nothing.
+    ///
+    /// The derives fill it in for a filter-options model and a `MergePatch`
+    /// model, whose data carries values; a query model's sort keys carry
+    /// none.
+    const FIELD_TYPES: &'static [ValueType] = &[];
 }
 
 /// The comparison a generated filter field performs against its column.

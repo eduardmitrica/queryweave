@@ -35,6 +35,84 @@ pub enum Value {
     NaiveTime(Option<NaiveTime>),
 }
 
+impl Value {
+    /// Which variant the value is.
+    #[must_use]
+    pub const fn kind(&self) -> ValueKind {
+        match self {
+            Self::Bool(_) => ValueKind::Bool,
+            Self::I16(_) => ValueKind::I16,
+            Self::I32(_) => ValueKind::I32,
+            Self::I64(_) => ValueKind::I64,
+            Self::F32(_) => ValueKind::F32,
+            Self::F64(_) => ValueKind::F64,
+            Self::Text(_) => ValueKind::Text,
+            Self::DateTimeUtc(_) => ValueKind::DateTimeUtc,
+            Self::NaiveDateTime(_) => ValueKind::NaiveDateTime,
+            Self::NaiveDate(_) => ValueKind::NaiveDate,
+            Self::NaiveTime(_) => ValueKind::NaiveTime,
+        }
+    }
+}
+
+/// A [`Value`] variant without its value: what a raw type converts into,
+/// known at compile time ([`IntoValue::TYPE`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValueKind {
+    /// [`Value::Bool`].
+    Bool,
+    /// [`Value::I16`].
+    I16,
+    /// [`Value::I32`].
+    I32,
+    /// [`Value::I64`].
+    I64,
+    /// [`Value::F32`].
+    F32,
+    /// [`Value::F64`].
+    F64,
+    /// [`Value::Text`].
+    Text,
+    /// [`Value::DateTimeUtc`].
+    DateTimeUtc,
+    /// [`Value::NaiveDateTime`].
+    NaiveDateTime,
+    /// [`Value::NaiveDate`].
+    NaiveDate,
+    /// [`Value::NaiveTime`].
+    NaiveTime,
+}
+
+impl ValueKind {
+    /// The Rust type the variant holds, for messages.
+    #[must_use]
+    pub const fn rust_type(self) -> &'static str {
+        match self {
+            Self::Bool => "bool",
+            Self::I16 => "i16",
+            Self::I32 => "i32",
+            Self::I64 => "i64",
+            Self::F32 => "f32",
+            Self::F64 => "f64",
+            Self::Text => "String",
+            Self::DateTimeUtc => "DateTime<Utc>",
+            Self::NaiveDateTime => "NaiveDateTime",
+            Self::NaiveDate => "NaiveDate",
+            Self::NaiveTime => "NaiveTime",
+        }
+    }
+}
+
+/// What a raw type is as a [`Value`], at compile time: its variant, and
+/// whether it may be absent (`NULL`, an `Option`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ValueType {
+    /// The variant it converts into.
+    pub kind: ValueKind,
+    /// Whether the value may be `NULL`: an `Option`.
+    pub nullable: bool,
+}
+
 /// A raw value that can be handed to the persistence layer as a [`Value`].
 #[diagnostic::on_unimplemented(
     message = "`{Self}` cannot be filtered on or stored",
@@ -42,6 +120,11 @@ pub enum Value {
     note = "supported raw values: bool, i8..i64, u8..u32, f32, f64, String and the chrono date/time types (and `Option`s of them); `u64` is not supported, since no Postgres integer holds its whole range: use `i64`, or add a `Value` variant (e.g. for `NUMERIC`)"
 )]
 pub trait IntoValue {
+    /// The [`Value`] variant [`into_value`](Self::into_value) gives, and
+    /// whether it may be `NULL`: what the persistence layer checks a column's
+    /// type against at compile time.
+    const TYPE: ValueType;
+
     /// Convert into a [`Value`].
     fn into_value(self) -> Value;
 }
@@ -51,12 +134,16 @@ macro_rules! impl_into_value {
     ($($ty:ty => $variant:ident),* $(,)?) => {
         $(
             impl IntoValue for $ty {
+                const TYPE: ValueType = ValueType { kind: ValueKind::$variant, nullable: false };
+
                 fn into_value(self) -> Value {
                     Value::$variant(Some(self))
                 }
             }
 
             impl IntoValue for Option<$ty> {
+                const TYPE: ValueType = ValueType { kind: ValueKind::$variant, nullable: true };
+
                 fn into_value(self) -> Value {
                     Value::$variant(self)
                 }
@@ -90,12 +177,16 @@ macro_rules! impl_into_value_widened {
     ($($ty:ty => $variant:ident($wide:ty)),* $(,)?) => {
         $(
             impl IntoValue for $ty {
+                const TYPE: ValueType = ValueType { kind: ValueKind::$variant, nullable: false };
+
                 fn into_value(self) -> Value {
                     Value::$variant(Some(<$wide>::from(self)))
                 }
             }
 
             impl IntoValue for Option<$ty> {
+                const TYPE: ValueType = ValueType { kind: ValueKind::$variant, nullable: true };
+
                 fn into_value(self) -> Value {
                     Value::$variant(self.map(<$wide>::from))
                 }
@@ -146,7 +237,7 @@ pub struct SortKey {
 
 #[cfg(test)]
 mod tests {
-    use super::{IntoValue, Value};
+    use super::{IntoValue, Value, ValueKind, ValueType};
 
     #[test]
     fn a_raw_value_converts_into_its_present_variant() {
@@ -180,5 +271,43 @@ mod tests {
         assert_eq!(Some(3_u32).into_value(), Value::I64(Some(3)));
         assert_eq!(None::<u32>.into_value(), Value::I64(None));
         assert_eq!(None::<u8>.into_value(), Value::I16(None));
+    }
+    // The compile-time type is the variant `into_value` gives, and an
+    // `Option` is the nullable one.
+    #[test]
+    fn the_type_is_the_variant_into_value_gives() {
+        fn assert_type<T: IntoValue>(value: T, nullable: bool) {
+            assert_eq!(
+                T::TYPE,
+                ValueType {
+                    kind: value.into_value().kind(),
+                    nullable
+                }
+            );
+        }
+
+        assert_type(true, false);
+        assert_type(1_i16, false);
+        assert_type(1_i32, false);
+        assert_type(1_i64, false);
+        assert_type(1.0_f32, false);
+        assert_type(1.0_f64, false);
+        assert_type(String::new(), false);
+        assert_type(chrono::DateTime::<chrono::Utc>::UNIX_EPOCH, false);
+        assert_type(chrono::NaiveDateTime::default(), false);
+        assert_type(chrono::NaiveDate::default(), false);
+        assert_type(chrono::NaiveTime::default(), false);
+        assert_type(1_i8, false);
+        assert_type(1_u8, false);
+        assert_type(1_u16, false);
+        assert_type(1_u32, false);
+        assert_type(None::<String>, true);
+        assert_type(Some(1_u32), true);
+    }
+
+    #[test]
+    fn a_kind_names_its_rust_type() {
+        assert_eq!(ValueKind::Text.rust_type(), "String");
+        assert_eq!(ValueKind::DateTimeUtc.rust_type(), "DateTime<Utc>");
     }
 }

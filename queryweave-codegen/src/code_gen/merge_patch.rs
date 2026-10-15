@@ -11,6 +11,7 @@ pub fn code_gen(
     let crate::lower::merge_patch::IntermediaryRepresentation {
         ident,
         field_idents,
+        field_types,
     } = ir;
     let equivalent = mapping_paths.equivalent;
 
@@ -25,6 +26,16 @@ pub fn code_gen(
             merge_patch_model::<#equivalent>();
         };
     };
+
+    // Each field's value type, for the persistence layer to check against
+    // its column's type; spanned to the field's type, like the other uses of
+    // it.
+    let value_types = field_types.iter().map(|field_type| {
+        let runtime = crate::utils::respanned(runtime, field_type.span());
+        quote_spanned! {field_type.span()=>
+            <<#field_type as #runtime::RawValue>::Raw as #runtime::IntoValue>::TYPE
+        }
+    });
 
     let field_names: Vec<String> = field_idents
         .iter()
@@ -107,10 +118,11 @@ pub fn code_gen(
         }
 
         /// The domain fields a merge patch may write (those not marked
-        /// `#[merge_patch(skip)]`, i.e. what `changed_values` can return),
-        /// for the persistence layer to map onto columns.
+        /// `#[merge_patch(skip)]`, i.e. what `changed_values` can return), and
+        /// their value types, for the persistence layer to map onto columns.
         impl #runtime::PersistedFields for #ident {
             const FIELD_NAMES: &'static [&'static str] = &[#(#field_names),*];
+            const FIELD_TYPES: &'static [#runtime::ValueType] = &[#(#value_types),*];
         }
 
         impl #ident {
@@ -151,6 +163,10 @@ mod tests {
         ];
         let intermediary_representation = crate::lower::merge_patch::IntermediaryRepresentation {
             field_idents,
+            field_types: vec![
+                syn::parse_quote!(Option<String>),
+                syn::parse_quote!(OrderCapacity),
+            ],
             ident: &quote::format_ident!("OrderModel"),
         };
 

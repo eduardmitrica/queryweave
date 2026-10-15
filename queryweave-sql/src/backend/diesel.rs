@@ -14,9 +14,18 @@
 //! The wrappers reach a Diesel entity's methods through [`Entity`], which
 //! `Columns` implements for it, and [`apply`] them to a [`BoxedQuery`].
 //!
-//! A value that does not fit its column's SQL type (a domain field and its
-//! column disagree on the type, or a `NULL` written to a `NOT NULL` column) is
-//! a [`ValueMismatch`] error, not a panic.
+//! A domain field whose value does not fit its column's SQL type (a domain
+//! field and its column disagree on the type, or a nullable field is written
+//! to a `NOT NULL` column) fails to build where the entity's methods are
+//! called for its model: the domain derives publish each field's value type
+//! (`PersistedFields::FIELD_TYPES`), and each column's SQL type the values it
+//! takes ([`ValueSqlType::ACCEPTS`], through [`FilterColumn::ACCEPTS`] and
+//! [`ColumnValue::TYPE`]). A value that
+//! still does not fit at run time (a model implementing `PersistedFields` by
+//! hand, or a `NULL` written to a `NOT NULL` column) is a [`ValueMismatch`]
+//! error, not a panic.
+
+pub(crate) mod check;
 
 use crate::Junction;
 use crate::sql::{LIKE_ESCAPE, like_pattern, page_offset};
@@ -34,7 +43,7 @@ use diesel::{TextExpressionMethods, dsl};
 use queryweave::FieldValue;
 use queryweave::{
     Conditions, FilterCondition, FilterOperator, PersistedFields, SortDirectionModel, SortKey,
-    SortKeys, Value,
+    SortKeys, Value, ValueKind,
 };
 
 /// A filter condition on the table `QS`, boxed for a boxed query's `filter`.
@@ -78,6 +87,10 @@ impl std::error::Error for ValueMismatch {}
 /// naive UTC time). Implement it for a SQL type of your own (with
 /// [`Comparison`] and [`ColumnValue`]) to filter and write its columns.
 pub trait ValueSqlType: SqlType<IsNull = is_nullable::NotNull> + SingleValue + Sized {
+    /// The [`Value`] variants [`rust`](Self::rust) takes, for the compile-time
+    /// check that a domain field's value fits its column.
+    const ACCEPTS: &'static [ValueKind];
+
     /// The Rust type the value binds as.
     type Rust: AsExpression<Self> + Send + 'static;
 
@@ -94,6 +107,8 @@ pub trait ValueSqlType: SqlType<IsNull = is_nullable::NotNull> + SingleValue + S
 macro_rules! value_sql_types {
     ($($sql:ty => $rust:ty { $($variant:ident($value:ident) => $convert:expr),+ $(,)? }),+ $(,)?) => {$(
         impl ValueSqlType for $sql {
+            const ACCEPTS: &'static [ValueKind] = &[$(ValueKind::$variant),+];
+
             type Rust = $rust;
 
             fn rust(value: Value) -> Result<Option<Self::Rust>, Value> {
@@ -127,6 +142,8 @@ macro_rules! value_sql_types {
         }
 
         impl ColumnValue for $sql {
+            const TYPE: ColumnType = ColumnType::not_null::<$sql>();
+
             type Rust = $rust;
 
             fn from_value(value: Value) -> Option<Self::Rust> {
@@ -178,6 +195,8 @@ value_sql_types!(
 
 // Text is a `ValueSqlType` like the others, but compares with `LIKE` too.
 impl ValueSqlType for sql_types::Text {
+    const ACCEPTS: &'static [ValueKind] = &[ValueKind::Text];
+
     type Rust = String;
 
     fn rust(value: Value) -> Result<Option<Self::Rust>, Value> {
@@ -189,6 +208,8 @@ impl ValueSqlType for sql_types::Text {
 }
 
 impl ColumnValue for sql_types::Text {
+    const TYPE: ColumnType = ColumnType::not_null::<Self>();
+
     type Rust = String;
 
     fn from_value(value: Value) -> Option<Self::Rust> {
@@ -207,7 +228,7 @@ impl ColumnValue for sql_types::Text {
     label = "no `queryweave_sql::diesel::Comparison` for this SQL type",
     note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type"
 )]
-pub trait Comparison<'a, C, QS, DB> {
+pub trait Comparison<'a, C, QS, DB>: ValueSqlType {
     /// `column operator value`, the value bound with the column's type; `None`
     /// if the value is of another type, or the operator does not apply.
     fn compare(
@@ -373,6 +394,28 @@ pub fn page(page: Option<u32>, page_size: Option<u32>) -> Option<(i64, i64)> {
     Some((i64::from(page_size), page_offset(page, page_size)))
 }
 
+/// What a column takes, at compile time: the [`Value`] variants of its
+/// non-null SQL type ([`ValueSqlType::ACCEPTS`]), and whether it may be
+/// `NULL`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ColumnType {
+    /// The variants it takes.
+    pub accepts: &'static [ValueKind],
+    /// Whether it may be `NULL`.
+    pub nullable: bool,
+}
+
+impl ColumnType {
+    /// A `NOT NULL` column of the SQL type `ST`.
+    #[must_use]
+    pub const fn not_null<ST: ValueSqlType>() -> Self {
+        Self {
+            accepts: ST::ACCEPTS,
+            nullable: false,
+        }
+    }
+}
+
 /// The Rust value a column whose SQL type is `Self` is set to: the SQL type's
 /// Rust type, or an `Option` of it for a nullable column.
 #[diagnostic::on_unimplemented(
@@ -381,6 +424,11 @@ pub fn page(page: Option<u32>, page_size: Option<u32>) -> Option<(i64, i64)> {
     note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for the SQL type"
 )]
 pub trait ColumnValue {
+    /// What the column takes, for the compile-time check that a domain
+    /// field's value fits it: [`ColumnType::not_null`] for a `NOT NULL` SQL
+    /// type.
+    const TYPE: ColumnType;
+
     /// The Rust type.
     type Rust;
 
@@ -390,6 +438,11 @@ pub trait ColumnValue {
 }
 
 impl<ST: ValueSqlType> ColumnValue for Nullable<ST> {
+    const TYPE: ColumnType = ColumnType {
+        accepts: ST::ACCEPTS,
+        nullable: true,
+    };
+
     type Rust = Option<ST::Rust>;
 
     fn from_value(value: Value) -> Option<Self::Rust> {
@@ -437,6 +490,10 @@ where
     note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for its SQL type"
 )]
 pub trait FilterColumn<'a, QS, DB>: Sized {
+    /// The [`Value`] variants the column's SQL type takes, for the
+    /// compile-time check that a domain field's value fits it.
+    const ACCEPTS: &'static [ValueKind];
+
     /// See [`condition`].
     ///
     /// # Errors
@@ -455,6 +512,8 @@ where
     <C::SqlType as IntoNullable>::Nullable: NonNull,
     NonNullSqlType<C>: Comparison<'a, C, QS, DB>,
 {
+    const ACCEPTS: &'static [ValueKind] = <NonNullSqlType<C> as ValueSqlType>::ACCEPTS;
+
     fn condition(
         self,
         filter_condition: FilterCondition,
@@ -498,6 +557,10 @@ where
     note = "mark the entity field of a column storing no domain field `#[columns(skip)]`, or implement `ValueSqlType`, `Comparison` and `ColumnValue` for its SQL type"
 )]
 pub trait AssignColumn: Sized {
+    /// What the column takes, for the compile-time check that a domain
+    /// field's value fits it ([`ColumnValue::TYPE`]).
+    const TYPE: ColumnType;
+
     /// The assignment `column = value`.
     type Assignment;
 
@@ -516,6 +579,8 @@ where
     C::SqlType: SqlType + TypedExpressionType + ColumnValue,
     ValueOf<C>: AsExpression<C::SqlType>,
 {
+    const TYPE: ColumnType = <C::SqlType as ColumnValue>::TYPE;
+
     type Assignment = dsl::Eq<C, ValueOf<C>>;
 
     fn assignment(self, field_value: FieldValue) -> Result<Self::Assignment, ValueMismatch> {
@@ -1089,5 +1154,87 @@ mod tests {
             Some(Some(1))
         );
         assert_eq!(Nullable::<Integer>::from_value(Value::Text(None)), None);
+    }
+
+    /// A `NULL` of every `Value` variant.
+    fn nulls() -> [Value; 11] {
+        [
+            Value::Bool(None),
+            Value::I16(None),
+            Value::I32(None),
+            Value::I64(None),
+            Value::F32(None),
+            Value::F64(None),
+            Value::Text(None),
+            Value::DateTimeUtc(None),
+            Value::NaiveDateTime(None),
+            Value::NaiveDate(None),
+            Value::NaiveTime(None),
+        ]
+    }
+
+    /// `ST::ACCEPTS` lists exactly the variants `ST::rust` takes.
+    fn assert_accepts<ST: super::ValueSqlType>() {
+        for value in nulls() {
+            let kind = value.kind();
+            assert_eq!(
+                ST::rust(value).is_ok(),
+                ST::ACCEPTS.contains(&kind),
+                "{kind:?} for {}",
+                std::any::type_name::<ST>()
+            );
+        }
+    }
+
+    // The compile-time check and the conversion agree on what a SQL type
+    // takes.
+    #[test]
+    fn each_sql_type_accepts_the_variants_it_converts() {
+        use diesel::sql_types::{
+            BigInt, Bool, Date, Double, Float, Integer, SmallInt, Text, Time, Timestamp,
+        };
+
+        assert_accepts::<Bool>();
+        assert_accepts::<SmallInt>();
+        assert_accepts::<Integer>();
+        assert_accepts::<BigInt>();
+        assert_accepts::<Float>();
+        assert_accepts::<Double>();
+        assert_accepts::<Text>();
+        assert_accepts::<Timestamp>();
+        assert_accepts::<Date>();
+        assert_accepts::<Time>();
+        #[cfg(feature = "diesel-postgres")]
+        assert_accepts::<diesel::sql_types::Timestamptz>();
+        #[cfg(feature = "diesel-sqlite")]
+        assert_accepts::<diesel::sql_types::TimestamptzSqlite>();
+        #[cfg(feature = "diesel-mysql")]
+        assert_accepts::<diesel::sql_types::Datetime>();
+    }
+
+    // A column's type: its SQL type's variants, nullable or not.
+    #[test]
+    fn a_columns_type_follows_its_sql_type() {
+        use super::{ColumnType, ColumnValue, FilterColumn};
+        use queryweave::ValueKind;
+
+        assert_eq!(
+            <orders::capacity as FilterColumn<'static, orders::table, Pg>>::ACCEPTS,
+            &[ValueKind::I32, ValueKind::I16]
+        );
+        assert_eq!(
+            <diesel::sql_types::Integer as ColumnValue>::TYPE,
+            ColumnType {
+                accepts: &[ValueKind::I32, ValueKind::I16],
+                nullable: false,
+            }
+        );
+        assert_eq!(
+            <diesel::sql_types::Nullable<diesel::sql_types::Text> as ColumnValue>::TYPE,
+            ColumnType {
+                accepts: &[ValueKind::Text],
+                nullable: true,
+            }
+        );
     }
 }

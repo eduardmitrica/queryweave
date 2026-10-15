@@ -153,8 +153,14 @@ flag_option}`; every link is an option of the derive's own attribute
   backend features for date-time SQL types) is the public
   `queryweave_sql::diesel` module (`backend/diesel.rs`): `condition`, `join`,
   `ordering`, `page`, `assignment`, `apply` over typed Diesel columns, dispatching on the
-  column's SQL type (`ValueSqlType`, `Comparison`, `ColumnValue`); a value that
-  does not fit is `ValueMismatch`. No target trait (Diesel builders are by
+  column's SQL type (`ValueSqlType`, `Comparison`, `ColumnValue`). A domain
+  field whose value does not fit its column fails to build (post-mono, in
+  `diesel_conditions` / `diesel_changeset`): `PersistedFields::FIELD_TYPES`
+  (from `IntoValue::TYPE`, filled by `Filters` / `MergePatch`) against
+  `FilterColumn::ACCEPTS` / `AssignColumn::TYPE` (`ValueSqlType::ACCEPTS`,
+  nullability; consts of the existing column bounds); a nullable field
+  needs a nullable column only to be written. Hand-written models (no types)
+  fall back to the runtime `ValueMismatch`. No target trait (Diesel builders are by
   value).
 - `merge-patch` (default) in every queryweave crate gates the merge patch
   derives and runtime; `Columns` always emits `push_assignments` /

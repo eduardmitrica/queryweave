@@ -1,0 +1,35 @@
+error[E0080]: evaluation panicked: domain field `client` may be `None`, but the column `client` of `Order` is `NOT NULL`: make the column `Nullable` in `table!`, or the field not optional
+  --> tests/ui/columns/fail/diesel_nullable_field_to_not_null_column.rs:28:49
+   |
+28 | #[derive(diesel::Queryable, diesel::Selectable, Columns)]
+   |                                                 ^^^^^^^ evaluation of `Order::diesel_changeset::<ClientModel>::{constant#1}` failed inside this call
+   |
+note: inside `queryweave_sql::__private::assert_assignment_types::<Order, ClientModel>`
+  --> $WORKSPACE/queryweave-sql/src/backend/diesel/check.rs
+   |
+   |     assert_value_types::<E, M>(Target::Write(columns));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `diesel::check::assert_value_types::<Order, ClientModel>`
+  --> $RUST/core/src/panic.rs
+   |
+   |         $crate::panicking::panic_display(&$arg);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |
+  ::: $WORKSPACE/queryweave-sql/src/backend/diesel/check.rs
+   |
+   |         panic!("{}", message.as_str());
+   |         ------------------------------ in this macro invocation
+
+note: erroneous constant encountered
+  --> tests/ui/columns/fail/diesel_nullable_field_to_not_null_column.rs:28:49
+   |
+28 | #[derive(diesel::Queryable, diesel::Selectable, Columns)]
+   |                                                 ^^^^^^^
+   |
+   = note: this note originates in the derive macro `Columns` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+note: the above error was encountered while instantiating `fn Order::diesel_changeset::<ClientModel>`
+  --> tests/ui/columns/fail/diesel_nullable_field_to_not_null_column.rs:39:13
+   |
+39 |     let _ = Order::diesel_changeset(client.changed_values(&queryweave::ChangeSet::default()));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

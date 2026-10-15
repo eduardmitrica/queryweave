@@ -1,0 +1,39 @@
+error[E0080]: evaluation panicked: the value of domain field `quantity` (`i16`) does not fit the column `quantity` of `Order`, which takes `String`: make the field's type and the column's SQL type in `table!` agree
+  --> tests/ui/columns/fail/diesel_field_type_mismatch.rs:24:49
+   |
+24 | #[derive(diesel::Queryable, diesel::Selectable, Columns)]
+   |                                                 ^^^^^^^ evaluation of `Order::diesel_conditions::<'_, diesel::sqlite::Sqlite, OrdersFilterOptionsModel>::{constant#1}` failed inside this call
+   |
+note: inside `queryweave_sql::__private::assert_condition_types::<Order, OrdersFilterOptionsModel>`
+  --> $WORKSPACE/queryweave-sql/src/backend/diesel/check.rs
+   |
+   |     assert_value_types::<E, M>(Target::Filter(columns));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `diesel::check::assert_value_types::<Order, OrdersFilterOptionsModel>`
+  --> $RUST/core/src/panic.rs
+   |
+   |         $crate::panicking::panic_display(&$arg);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |
+  ::: $WORKSPACE/queryweave-sql/src/backend/diesel/check.rs
+   |
+   |         panic!("{}", message.as_str());
+   |         ------------------------------ in this macro invocation
+
+note: erroneous constant encountered
+  --> tests/ui/columns/fail/diesel_field_type_mismatch.rs:24:49
+   |
+24 | #[derive(diesel::Queryable, diesel::Selectable, Columns)]
+   |                                                 ^^^^^^^
+   |
+   = note: this note originates in the derive macro `Columns` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+note: the above error was encountered while instantiating `fn Order::diesel_conditions::<'_, Sqlite, OrdersFilterOptionsModel>`
+  --> tests/ui/columns/fail/diesel_field_type_mismatch.rs:34:13
+   |
+34 |       let _ = Order::diesel_conditions::<diesel::sqlite::Sqlite, _>(
+   |  _____________^
+35 | |         OrdersFilterOptionsModel::default().conditions(),
+36 | |         queryweave_sql::Junction::And,
+37 | |     );
+   | |_____^

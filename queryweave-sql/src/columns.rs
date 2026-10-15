@@ -91,7 +91,7 @@ pub trait Columns {
 }
 
 /// Byte-wise string equality, usable in `const` code.
-const fn str_eq(left: &str, right: &str) -> bool {
+pub const fn str_eq(left: &str, right: &str) -> bool {
     let (left, right) = (left.as_bytes(), right.as_bytes());
     if left.len() != right.len() {
         return false;
@@ -155,8 +155,16 @@ pub struct Message {
 }
 
 impl Message {
+    /// An empty message.
+    pub(crate) const fn new() -> Self {
+        Self {
+            bytes: [0; MESSAGE_CAPACITY],
+            len: 0,
+        }
+    }
+
     /// Append `text`, cutting it at the capacity.
-    const fn push(mut self, text: &str) -> Self {
+    pub(crate) const fn push(mut self, text: &str) -> Self {
         let text = text.as_bytes();
         let mut index = 0;
         while index < text.len() && self.len < MESSAGE_CAPACITY {
@@ -174,7 +182,7 @@ impl Message {
         match core::str::from_utf8(self.bytes.split_at(self.len).0) {
             Ok(text) => text,
             // Only a cut through a multi-byte character gets here.
-            Err(_) => "a domain field has no column",
+            Err(_) => "a compile-time check of queryweave_sql failed (its message was cut)",
         }
     }
 }
@@ -184,17 +192,14 @@ impl Message {
 /// `const` panic cannot format its message.
 #[must_use]
 pub const fn missing_column_message(entity: &str, field: &str) -> Message {
-    Message {
-        bytes: [0; MESSAGE_CAPACITY],
-        len: 0,
-    }
-    .push("domain field `")
-    .push(field)
-    .push("` has no column on `")
-    .push(entity)
-    .push("`: add a field of that name to the entity, or map one onto it with `#[domain_field(")
-    .push(field)
-    .push(")]`")
+    Message::new()
+        .push("domain field `")
+        .push(field)
+        .push("` has no column on `")
+        .push(entity)
+        .push("`: add a field of that name to the entity, or map one onto it with `#[domain_field(")
+        .push(field)
+        .push(")]`")
 }
 
 /// Assert at compile time that every one of `fields` has a column on `entity`.

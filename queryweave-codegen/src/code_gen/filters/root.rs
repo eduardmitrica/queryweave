@@ -247,11 +247,22 @@ pub fn code_gen(
     // for the query model. The persistence layer checks at compile time
     // that each has a column.
     let mut filter_field_names = Vec::new();
-    for column in &field_columns {
+    let mut filter_field_value_types = Vec::new();
+    for (column, value_type) in field_columns.iter().zip(&field_value_types) {
         if !filter_field_names.contains(column) {
             filter_field_names.push(column.clone());
+            filter_field_value_types.push(value_type);
         }
     }
+    // The value type of each, for the persistence layer to check against its
+    // column's type: the filter fields of one domain field share it. Spanned
+    // to the model field, like the other uses of its type.
+    let filter_field_types = filter_field_value_types.iter().map(|value_type| {
+        let runtime = crate::utils::respanned(runtime, value_type.span());
+        quote_spanned! {value_type.span()=>
+            <<#value_type as #runtime::RawValue>::Raw as #runtime::IntoValue>::TYPE
+        }
+    });
     let mut query_field_names = filter_field_names.clone();
     for sort_field in sort.iter().flat_map(|sort| &sort.fields) {
         let name = sort_field.to_string();
@@ -280,7 +291,7 @@ pub fn code_gen(
     // Spanned to the model field, so an error about the type (e.g. no
     // `RawValue`), including those surfacing through the derives on the
     // filters struct, is reported on the field.
-    let filter_field_types = field_value_types.iter().map(|value_type| {
+    let filter_fields = field_value_types.iter().map(|value_type| {
         let runtime = crate::utils::respanned(runtime, value_type.span());
         quote_spanned!(value_type.span()=> Option<<#value_type as #runtime::RawValue>::Raw>)
     });
@@ -291,13 +302,14 @@ pub fn code_gen(
         /// Filters derived from the original struct's fields.
         #[derive(Debug, Default, Clone)]
         pub struct #filters {
-            #(#[doc = #field_docs] pub #field_idents: #filter_field_types),*
+            #(#[doc = #field_docs] pub #field_idents: #filter_fields),*
         }
 
-        /// The domain fields these filters compare, for the persistence layer
-        /// to map onto columns.
+        /// The domain fields these filters compare, and their value types,
+        /// for the persistence layer to map onto columns.
         impl #runtime::PersistedFields for #filters {
             const FIELD_NAMES: &'static [&'static str] = &[#(#filter_field_names),*];
+            const FIELD_TYPES: &'static [#runtime::ValueType] = &[#(#filter_field_types),*];
         }
 
         impl #filters {

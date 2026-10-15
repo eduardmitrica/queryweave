@@ -72,6 +72,8 @@ pub use sqlx::{QueryBuilder, query_builder::Separated};
 pub mod __private {
     pub use crate::__if_diesel as if_diesel;
     pub use crate::__if_merge_patch as if_merge_patch;
+    #[cfg(feature = "diesel")]
+    pub use crate::backend::diesel::check::{assert_assignment_types, assert_condition_types};
     pub use crate::columns::assert_model_columns;
     pub use queryweave::__private::*;
 }
