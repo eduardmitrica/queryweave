@@ -1,7 +1,7 @@
 [package]
 name = "queryweave-derive"
 # The five crates are versioned in lockstep.
-version = "0.1.0"
+version = "0.2.0"
 description = "Derive macros generating filtering, sorting, paging and merge-patch types for a domain model and the layers mirroring it."
 authors = ["Eduard Mihai Mitrică"]
 license = "MIT OR Apache-2.0"
@@ -19,7 +19,7 @@ workspace = true
 proc-macro = true
 
 [dependencies]
-queryweave-codegen = { path = "../queryweave-codegen", version = "0.1.0", default-features = false }
+queryweave-codegen = { path = "../queryweave-codegen", version = "0.2.0", default-features = false }
 
 [features]
 # Merge patches (`MergePatch`, `MergePatchNullableFields`, `ValidateNonNullable`

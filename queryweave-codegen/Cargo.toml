@@ -1,7 +1,7 @@
 [package]
 name = "queryweave-codegen"
 # The five crates are versioned in lockstep.
-version = "0.1.0"
+version = "0.2.0"
 description = "The code generation behind queryweave's derives, for proc-macro crates with their own naming conventions and integrations."
 authors = ["Eduard Mihai Mitrică"]
 license = "MIT OR Apache-2.0"

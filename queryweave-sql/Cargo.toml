@@ -1,7 +1,7 @@
 [package]
 name = "queryweave-sql"
 # The five crates are versioned in lockstep.
-version = "0.1.0"
+version = "0.2.0"
 description = "The SQL runtime of queryweave: database-agnostic sqlx query building (WHERE, ORDER BY, LIMIT/OFFSET, SET) from the data queryweave's derives generate."
 authors = ["Eduard Mihai Mitrică"]
 license = "MIT OR Apache-2.0"
@@ -16,7 +16,7 @@ rust-version = "1.88"
 workspace = true
 
 [dependencies]
-queryweave = { path = "../queryweave", version = "0.1.0", default-features = false }
+queryweave = { path = "../queryweave", version = "0.2.0", default-features = false }
 
 # The `sqlx` backend. No driver: it is generic over any database whose driver
 # binds the domain's raw values (`BindValues`).

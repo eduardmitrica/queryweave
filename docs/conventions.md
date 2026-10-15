@@ -42,7 +42,7 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-queryweave-codegen = "0.1"
+queryweave-codegen = "0.2"
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full"] }

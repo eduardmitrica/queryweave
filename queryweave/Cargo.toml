@@ -1,7 +1,7 @@
 [package]
 name = "queryweave"
 # The five crates are versioned in lockstep.
-version = "0.1.0"
+version = "0.2.0"
 description = "The core runtime of queryweave: the filtering, sorting, paging and merge-patch data its derives generate for a domain model, with no database dependency."
 authors = ["Eduard Mihai Mitrică"]
 license = "MIT OR Apache-2.0"

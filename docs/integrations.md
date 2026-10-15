@@ -67,7 +67,7 @@ and `schemars` integrations use. It has one feature per integration, none
 enabled by default, each adding that library's derives to those types:
 
 ```toml
-queryweave-api = { version = "0.1", features = ["serde", "utoipa"] }
+queryweave-api = { version = "0.2", features = ["serde", "utoipa"] }
 ```
 
 If you use a flag whose feature is not enabled, the build fails with an error

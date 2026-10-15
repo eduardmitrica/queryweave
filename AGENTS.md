@@ -12,7 +12,8 @@ from). The explanations for people are in `README.md` and `docs/`; see [Docs](#d
 
 - Repository: <https://github.com/eduardmitrica/queryweave>, default branch `main`, CI on GitHub
   Actions (`.github/workflows/ci.yml`).
-- Version `0.1.0`, the five published crates in lockstep; licensed `MIT OR Apache-2.0`
+- Version `0.2.0`, the five published crates in lockstep (`CHANGELOG.md`: what each release
+  changed and how to upgrade; a user-facing change adds an entry under `Unreleased`); licensed `MIT OR Apache-2.0`
   (`LICENSE-MIT` / `LICENSE-APACHE` at the root and in each published crate); MSRV 1.88 (for the default and every optional feature; SeaORM itself, only a dev-dependency, needs 1.94); one shared
   `README.md` is each crate's readme; `repository` comes from `[workspace.package]`. Published
   on crates.io (`cargo publish --workspace`, the five crates together); the README's links are

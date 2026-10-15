@@ -212,11 +212,13 @@ runtime crate of each layer (see [The crates](#the-crates)):
 
 ```toml
 [dependencies]
-queryweave-derive = "0.1"
-queryweave = "0.1" # or `queryweave-api` / `queryweave-sql`, per layer
+queryweave-derive = "0.2"
+queryweave = "0.2" # or `queryweave-api` / `queryweave-sql`, per layer
 ```
 
-Its version is `0.1.0`: the API may still change before `1.0`.
+Its version is `0.2.0`: the API may still change before `1.0`. What changed in each
+release, and how to upgrade, is in
+[`CHANGELOG.md`](https://github.com/eduardmitrica/queryweave/blob/main/CHANGELOG.md).
 
 ## Minimum supported Rust version
 

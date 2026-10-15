@@ -2764,7 +2764,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "schemars 1.2.2",
@@ -2775,7 +2775,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-api"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "queryweave",
  "schemars 1.2.2",
@@ -2787,7 +2787,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-codegen"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "derive-new",
  "fancy-regex",
@@ -2803,7 +2803,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-custom-conventions"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "pretty_assertions",
  "proc-macro2",
@@ -2820,7 +2820,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-derive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "diesel",
@@ -2846,7 +2846,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-sql"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "diesel",
