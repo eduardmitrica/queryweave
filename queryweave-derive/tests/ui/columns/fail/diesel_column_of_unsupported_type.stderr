@@ -9,12 +9,12 @@ error[E0277]: queryweave cannot write a domain value to a column of SQL type `di
    = help: the following other types implement trait `ColumnValue`:
              BigInt
              Date
-             Nullable<ST>
              Time
              Timestamp
              Timestamptz
              diesel::sql_types::Bool
              diesel::sql_types::Double
+             diesel::sql_types::Float
            and $N others
    = note: required for `columns::id` to implement `AssignColumn`
 

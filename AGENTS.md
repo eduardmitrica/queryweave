@@ -79,7 +79,10 @@ everything and serializes the UI tests in the `ui-tests` group, because every `t
 builds through the same generated trybuild project and concurrent runs clobber each other's
 manifest (dtolnay/trybuild#276). Each UI case is a full `cargo build`, so they are slow.
 
-Regenerate expected `.stderr` files with `TRYBUILD=overwrite` and review the diff.
+Regenerate expected `.stderr` files with `TRYBUILD=overwrite` and review the diff. They are the
+workspace build's output (`--workspace`, as CI runs them), where Cargo unifies every member's
+features, dev-dependencies included: adding or changing any dependency can change rustc's lists of
+implementors and its type paths, so rerun the UI tests after a dependency change too.
 
 ## Toolchain
 

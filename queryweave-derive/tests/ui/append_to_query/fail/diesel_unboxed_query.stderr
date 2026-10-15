@@ -7,7 +7,7 @@ error[E0271]: type mismatch resolving `<table as FilterDsl<Box<dyn BoxableExpres
    |          required by a bound introduced by this call
    |
    = note: expected struct `table`
-              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::WhereClause<Box<dyn BoxableExpression<table, Sqlite, SqlType = Nullable<diesel::sql_types::Bool>>>>>`
+              found struct `diesel::internal::table_macro::SelectStatement<diesel::internal::table_macro::FromClause<table>, diesel::query_builder::select_clause::DefaultSelectClause<diesel::internal::table_macro::FromClause<table>>, diesel::query_builder::distinct_clause::NoDistinctClause, diesel::query_builder::where_clause::WhereClause<Box<dyn BoxableExpression<table, Sqlite, SqlType = diesel::sql_types::Nullable<diesel::sql_types::Bool>>>>>`
    = note: required for `table` to implement `queryweave_sql::diesel::BoxedQuery<'_, table, Sqlite>`
 note: required by a bound in `OrdersQueryModelWrapper::diesel_apply_to`
   --> tests/ui/append_to_query/fail/diesel_unboxed_query.rs:36:10
