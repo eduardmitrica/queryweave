@@ -8,6 +8,15 @@ version of all of them (the generated code checks it at compile time).
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Before `1.0`, every minor version may break the API (as Cargo assumes).
 
+## [0.2.1] - 2026-11-13
+
+### Changed
+
+- The optional integrations follow their crates' current releases: utoipa
+  `6` (was `5`; `queryweave-api`'s `utoipa` feature) and validator `0.21`
+  (was `0.20`; the `validator` feature). A project on utoipa 5 or validator
+  0.20 stays on queryweave 0.2.0.
+
 ## [0.2.0] - 2026-10-15
 
 The persistence layer is no longer tied to sqlx: `queryweave-sql` writes a
@@ -95,5 +104,6 @@ The first release: the `Filters`, `MergePatch`, `MergePatchNullableFields`,
 `AppendToQueryWithSeparator` and `Columns` derives, their runtime crates, and
 SQL written through sqlx for Postgres, MySQL/MariaDB and SQLite.
 
+[0.2.1]: https://github.com/eduardmitrica/queryweave/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/eduardmitrica/queryweave/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/eduardmitrica/queryweave/releases/tag/v0.1.0

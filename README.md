@@ -216,7 +216,7 @@ queryweave-derive = "0.2"
 queryweave = "0.2" # or `queryweave-api` / `queryweave-sql`, per layer
 ```
 
-Its version is `0.2.0`: the API may still change before `1.0`. What changed in each
+Its version is `0.2.1`: the API may still change before `1.0`. What changed in each
 release, and how to upgrade, is in
 [`CHANGELOG.md`](https://github.com/eduardmitrica/queryweave/blob/main/CHANGELOG.md).
 

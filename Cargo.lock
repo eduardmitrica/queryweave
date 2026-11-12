@@ -2764,7 +2764,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "schemars 1.2.2",
@@ -2775,7 +2775,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-api"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "queryweave",
  "schemars 1.2.2",
@@ -2787,7 +2787,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-codegen"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "derive-new",
  "fancy-regex",
@@ -2803,7 +2803,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-custom-conventions"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "pretty_assertions",
  "proc-macro2",
@@ -2820,7 +2820,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-derive"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "diesel",
@@ -2846,7 +2846,7 @@ dependencies = [
 
 [[package]]
 name = "queryweave-sql"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "diesel",
@@ -4637,9 +4637,9 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
 name = "utoipa"
-version = "5.5.0"
+version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bde15df68e80b16c7d16b9616e80770ad158988daa56a27dccd1e55558b0160"
+checksum = "8765fe27aeff71012a3f90fa474cf1df863a7d0dd81ed25de4e63fff2544994f"
 dependencies = [
  "indexmap 2.14.2",
  "serde",
@@ -4649,13 +4649,13 @@ dependencies = [
 
 [[package]]
 name = "utoipa-gen"
-version = "5.5.0"
+version = "6.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ba0b99ee52df3028635d93840c797102da61f8a7bb3cf751032455895b52ef8"
+checksum = "d935f1c83fdf8b88f09bbe050d0cea78ea4afee6d7b0317403228c1200b2c8ab"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.6",
 ]
 
 [[package]]
@@ -4670,12 +4670,11 @@ dependencies = [
 
 [[package]]
 name = "validator"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43fb22e1a008ece370ce08a3e9e4447a910e92621bb49b85d6e48a45397e7cfa"
+checksum = "c3d68c6633c483df6780cc5277a417c7c2d1bceee2649d06c8ab6b0fd2dd3c81"
 dependencies = [
  "idna",
- "once_cell",
  "regex",
  "serde",
  "serde_derive",
